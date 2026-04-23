@@ -1,0 +1,28 @@
+{
+  "heroTagline": "Transforming Education",
+  "heroHeading": "Empowering Minds, Shaping Futures.",
+  "heroDescription": "We're on a mission to break down barriers to education and provide world-class learning opportunities to anyone, anywhere.",
+  "heroBackgroundImageUrl": "http://localhost:3000/uploads/about/hero-1771479164189.jpg",
+  "missionTitle": "Our Mission",
+  "missionText": "To provide accessible, high-quality education for everyone, everywhere. We believe knowledge should be a universal right, not a privilege.",
+  "visionTitle": "Our mission",
+  "visionText": "To become the global standard for digital learning and career growth, fostering a world where every learner reaches their full potential.",
+  "whyChooseUsTitle": "Why Choose Us?",
+  "whyChooseUsIntro": "We combine cutting-edge technology with world-class pedagogical methods to deliver an unmatched learning experience.",
+  "features": [
+    {
+      "title": "Expert Instructors",
+      "description": "Learn from industry leaders and academic experts with years of real-world experience."
+    },
+    {
+      "title": "Flexible Learning",
+      "description": "Study at your own pace, on your own schedule. Access courses from any device, anywhere."
+    },
+    {
+      "title": "Community Support",
+      "description": "Join a vibrant community of learners. Get 24/7 peer support and mentor guidance."
+    }
+  ],
+  "ctaLabel": "Explore Courses",
+  "ctaHref": "/courses"
+}

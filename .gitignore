@@ -1,0 +1,57 @@
+# ===========================
+# Secrets & local env — NEVER push these to GitHub
+# ===========================
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+*.pem
+secrets/
+
+# ===========================
+# Dependencies
+# ===========================
+node_modules/
+
+# ===========================
+# Next.js (frontend)
+# ===========================
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+frontend/build/
+
+# ===========================
+# User uploads & generated media (local only)
+# ===========================
+frontend/public/uploads/
+
+# ===========================
+# Logs & OS
+# ===========================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# ===========================
+# Test / coverage
+# ===========================
+coverage/
+frontend/coverage/
+
+# ===========================
+# TypeScript / Next
+# ===========================
+*.tsbuildinfo
+frontend/next-env.d.ts
+
+# ===========================
+# Optional: uncomment if you do not share IDE settings
+# ===========================
+# .idea/
+# .vscode/

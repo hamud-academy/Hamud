@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 420" width="400" height="420">
+  <rect width="400" height="420" rx="8" fill="#f9fafb" stroke="#e5e7eb"/>
+  <text x="20" y="36" font-family="system-ui,sans-serif" font-size="16" font-weight="600" fill="#111827">Manual Payments</text>
+  <text x="20" y="62" font-family="monospace" font-size="11" fill="#374151">eDahab: *110*625070785*$$$$$$$#</text>
+  <text x="20" y="82" font-family="monospace" font-size="11" fill="#374151">EVC+: *712*615070785*$$$$$$$#</text>
+  <text x="20" y="102" font-family="monospace" font-size="11" fill="#374151">ZAAD: *880*0615070785*$$$$$$$#</text>
+  <text x="20" y="122" font-family="monospace" font-size="11" fill="#374151">SAHAL: *883*0615070785*$$$$$$$#</text>
+  <text x="20" y="142" font-family="monospace" font-size="11" fill="#374151">WAAFI APP (DJIBOUTI): 0615070785</text>
+  <text x="20" y="162" font-family="monospace" font-size="11" fill="#374151">eBirr: +251915919901 (Wajaale Exchange Rate)</text>
+  <text x="20" y="182" font-family="monospace" font-size="11" fill="#374151">MPESA: +254712868567</text>
+  <text x="20" y="202" font-family="monospace" font-size="11" fill="#374151">Salaam Bank: 35-16-99-99</text>
+  <text x="20" y="222" font-family="monospace" font-size="11" fill="#374151">IBS Bank: 0106940300840012</text>
+  <text x="20" y="242" font-family="monospace" font-size="11" fill="#374151">Premier Bank Teller ID: 749096</text>
+  <text x="20" y="262" font-family="monospace" font-size="11" fill="#374151">Premier Bank Account: 02-06-05-39-90-01</text>
+  <text x="20" y="282" font-family="monospace" font-size="11" fill="#374151">Xawaalada TAAJ EVC+: +252615070785</text>
+  <text x="20" y="302" font-family="monospace" font-size="11" fill="#374151">Xawaalada DAHABSHIIL E-DAHAB: +252625070785</text>
+</svg>

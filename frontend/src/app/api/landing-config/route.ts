@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getLandingConfig } from "@/lib/landing-config";
 import { prisma } from "@/lib/prisma";
+import { resolveMediaUrl } from "@/lib/resolve-media-url";
 
 export async function GET() {
   const [config, studentCount, studentProfiles] = await Promise.all([
@@ -15,7 +16,7 @@ export async function GET() {
   ]);
   const profiles = studentProfiles.map((u) => ({
     name: u.name ?? "Student",
-    image: u.image ?? null,
+    image: u.image != null && u.image !== "" ? resolveMediaUrl(u.image) : null,
   }));
   return NextResponse.json({ ...config, studentCount, studentProfiles: profiles });
 }

@@ -25,6 +25,15 @@ const securityHeaders: { key: string; value: string }[] = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.public.blob.vercel-storage.com",
+        pathname: "/**",
+      },
+    ],
+  },
   experimental: {
     serverActions: {
       // Lesson videos use /api/upload/lesson-video (separate limit). Keep server actions bounded.

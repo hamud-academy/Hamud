@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { saveUploadedFile } from "@/lib/upload-storage";
+import { saveUploadedFile, uploadErrorMessage } from "@/lib/upload-storage";
 import path from "path";
 
 const ALLOWED_TYPES = [
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     ({ url } = await saveUploadedFile(relativePath, buffer, contentType));
   } catch (e) {
     console.error("Upload error:", e);
-    return NextResponse.json({ error: "Failed to save file" }, { status: 500 });
+    return NextResponse.json({ error: uploadErrorMessage(e) }, { status: 500 });
   }
 
   return NextResponse.json({ url, filename });

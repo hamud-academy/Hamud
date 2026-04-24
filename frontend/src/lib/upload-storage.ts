@@ -8,6 +8,9 @@ export type PublicUploadPath = string;
 /**
  * Saves bytes to Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set (production),
  * otherwise to `public/<path>` for local development.
+ *
+ * Requires a **public** Vercel Blob store (`put` uses `access: "public"`). Private
+ * stores cannot be toggled to public after creation — create a new public store if needed.
  */
 export async function saveUploadedFile(
   relativePath: PublicUploadPath,

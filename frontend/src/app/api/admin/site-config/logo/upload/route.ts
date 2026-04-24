@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { writeFile, mkdir } from "fs/promises";
+import { saveUploadedFile } from "@/lib/upload-storage";
 import path from "path";
 
 const ALLOWED_TYPES = [
@@ -55,34 +55,19 @@ export async function POST(request: NextRequest) {
   const ext = path.extname(file.name)?.toLowerCase() || ".png";
   const safeExt = ALLOWED_EXT.includes(ext) ? ext : ".png";
   const filename = `logo-${Date.now()}${safeExt}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "logo");
-
-  try {
-    await mkdir(uploadDir, { recursive: true });
-  } catch (e) {
-    console.error("Mkdir error:", e);
-    return NextResponse.json(
-      { error: "Failed to create upload directory" },
-      { status: 500 }
-    );
-  }
-
-  const filepath = path.join(uploadDir, filename);
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
+  const relativePath = `uploads/logo/${filename}`;
+  const contentType =
+    file.type && file.type !== "" ? file.type : "application/octet-stream";
 
+  let url: string;
   try {
-    await writeFile(filepath, buffer);
+    ({ url } = await saveUploadedFile(relativePath, buffer, contentType));
   } catch (e) {
-    console.error("Write error:", e);
-    return NextResponse.json(
-      { error: "Failed to save file" },
-      { status: 500 }
-    );
+    console.error("Upload error:", e);
+    return NextResponse.json({ error: "Failed to save file" }, { status: 500 });
   }
-
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-  const url = `${baseUrl}/uploads/logo/${filename}`;
 
   return NextResponse.json({ url, filename });
 }

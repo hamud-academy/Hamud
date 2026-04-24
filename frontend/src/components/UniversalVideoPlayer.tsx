@@ -29,12 +29,15 @@ function getVimeoEmbedUrl(url: string): string | null {
 
 function isDirectVideo(url: string): boolean {
   const u = url.toLowerCase();
+  const videoExt = /\.(mp4|webm|ogg|mov)(\?|#|$)/i.test(url);
+  if (u.includes("/uploads/videos/")) return true;
+  if (u.includes("blob.vercel-storage.com") && videoExt) return true;
   return (
     u.endsWith(".mp4") ||
     u.endsWith(".webm") ||
     u.endsWith(".ogg") ||
     u.endsWith(".mov") ||
-    u.includes("/uploads/videos/")
+    videoExt
   );
 }
 

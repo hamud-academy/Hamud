@@ -1,5 +1,6 @@
 import { readFile } from "fs/promises";
 import path from "path";
+import { resolveMediaUrl } from "@/lib/resolve-media-url";
 
 const CONFIG_PATH = path.join(process.cwd(), "data", "landing-config.json");
 
@@ -19,7 +20,9 @@ export async function getLandingConfig(): Promise<LandingConfig> {
     const raw = await readFile(CONFIG_PATH, "utf-8");
     const data = JSON.parse(raw) as Partial<LandingConfig>;
     return {
-      heroImageUrl: data.heroImageUrl ?? defaultLandingConfig.heroImageUrl,
+      heroImageUrl: resolveMediaUrl(
+        data.heroImageUrl ?? defaultLandingConfig.heroImageUrl
+      ) ?? defaultLandingConfig.heroImageUrl,
       heroTagline: data.heroTagline ?? defaultLandingConfig.heroTagline,
       heroHeading: data.heroHeading ?? defaultLandingConfig.heroHeading,
       heroHeadingHighlight: data.heroHeadingHighlight ?? defaultLandingConfig.heroHeadingHighlight,

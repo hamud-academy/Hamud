@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { resolveMediaUrl } from "@/lib/resolve-media-url";
 
 async function getCourses() {
   return prisma.course.findMany({
@@ -52,16 +53,20 @@ export default async function PopularCourses() {
         </div>
 
         <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
-          {courses.map((course) => (
+          {courses.map((course) => {
+            const thumb = course.thumbnail
+              ? (resolveMediaUrl(course.thumbnail) ?? course.thumbnail)
+              : null;
+            return (
             <article
               key={course.id}
               className="group bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden hover:shadow-lg hover:border-blue-100 dark:hover:border-blue-800 hover:shadow-md transition duration-200"
             >
               <Link href={`/courses/${course.slug}`} className="block">
                 <div className="aspect-video bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center overflow-hidden relative">
-                  {course.thumbnail ? (
+                  {thumb ? (
                     <img
-                      src={course.thumbnail}
+                      src={thumb}
                       alt={course.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
@@ -111,7 +116,8 @@ export default async function PopularCourses() {
                 </div>
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
 
         {courses.length === 0 && (

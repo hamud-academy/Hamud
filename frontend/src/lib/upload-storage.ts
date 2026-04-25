@@ -19,15 +19,11 @@ export async function saveUploadedFile(
 ): Promise<{ url: string }> {
   const normalized = relativePath.replace(/^\/+/, "");
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
-  const useVercelBlob =
-    Boolean(token) &&
-    token !== "vercel_blob_rw_..." &&
-    token.length >= 40;
 
-  if (useVercelBlob) {
+  if (token && token !== "vercel_blob_rw_..." && token.length >= 40) {
     const blob = await put(normalized, data, {
       access: "public",
-      token: token!,
+      token,
       contentType: contentType || "application/octet-stream",
     });
     return { url: blob.url };

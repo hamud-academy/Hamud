@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { getLandingConfig, defaultLandingConfig } from "@/lib/landing-config";
-
-const CONFIG_PATH = path.join(process.cwd(), "data", "landing-config.json");
+import { getLandingConfig, defaultLandingConfig, saveLandingConfig } from "@/lib/landing-config";
 
 export async function GET() {
   const session = await auth();
@@ -36,10 +32,9 @@ export async function PATCH(request: NextRequest) {
   if (body.heroDescription !== undefined) current.heroDescription = body.heroDescription == null ? "" : String(body.heroDescription).trim();
   if (body.heroStudentCountText !== undefined) current.heroStudentCountText = body.heroStudentCountText == null ? "" : String(body.heroStudentCountText).trim();
   try {
-    await mkdir(path.dirname(CONFIG_PATH), { recursive: true });
-    await writeFile(CONFIG_PATH, JSON.stringify(current, null, 2), "utf-8");
+    await saveLandingConfig(current);
   } catch (e) {
-    console.error("landing-config write error:", e);
+    console.error("landing-config save error:", e);
     return NextResponse.json({ error: "Failed to save config" }, { status: 500 });
   }
   return NextResponse.json(current);

@@ -1,4 +1,4 @@
-# BaroSmart - E-Learning Platform
+# Hamud Academy- E-Learning Platform
 
 Platform e-learning ah oo leh website iyo mobile app (ka dib), loo dhisay React.js, Next.js, Tailwind CSS, iyo PostgreSQL.
 

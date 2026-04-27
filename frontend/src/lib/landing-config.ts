@@ -46,5 +46,5 @@ export async function getLandingConfig(): Promise<LandingConfig> {
 }
 
 export async function saveLandingConfig(config: LandingConfig): Promise<void> {
-  await saveAppConfig(CONFIG_KEY, config);
+  await saveAppConfig(CONFIG_KEY, normalizeLandingConfig(config));
 }

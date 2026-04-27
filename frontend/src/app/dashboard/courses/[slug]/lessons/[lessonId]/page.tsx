@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import UniversalVideoPlayer from "@/components/UniversalVideoPlayer";
 import LessonQuizTake from "@/components/LessonQuizTake";
+import LessonCompleteButton from "@/components/LessonCompleteButton";
 
 interface Props {
   params: Promise<{ slug: string; lessonId: string }>;
@@ -51,6 +52,12 @@ export default async function DashboardLessonPage({ params }: Props) {
     notFound();
   }
 
+  const completion = await prisma.lessonCompletion.findUnique({
+    where: {
+      userId_lessonId: { userId, lessonId },
+    },
+  });
+
   const allLessons = course.modules.flatMap((m) => m.lessons);
   const currentIndex = allLessons.findIndex((l) => l.id === lessonId);
   const prevLesson = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
@@ -95,6 +102,14 @@ export default async function DashboardLessonPage({ params }: Props) {
       )}
 
       <LessonQuizTake lessonId={lesson.id} variant="dashboard" />
+
+      <LessonCompleteButton
+        lessonId={lesson.id}
+        initialCompleted={Boolean(completion)}
+        initialCourseCompleted={enrollment.completed}
+        initialProgress={enrollment.progress}
+        certificateUrl={enrollment.completed ? `/api/certificates/${enrollment.id}` : null}
+      />
 
       <div className="flex flex-wrap justify-between gap-3">
         {prevLesson ? (

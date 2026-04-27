@@ -7,6 +7,8 @@ const securityHeaders: { key: string; value: string }[] = [
   { key: "X-DNS-Prefetch-Control", value: "on" },
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
     key: "Permissions-Policy",
@@ -41,7 +43,18 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: "/:path*", headers: [...securityHeaders] }];
+    return [
+      { source: "/:path*", headers: [...securityHeaders] },
+      {
+        source: "/uploads/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
   },
 };
 

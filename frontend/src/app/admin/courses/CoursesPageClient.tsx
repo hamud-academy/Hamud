@@ -1,10 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import CreateCourseForm from "./new/CreateCourseForm";
-
 type Category = { id: string; name: string; slug: string };
 type Instructor = { id: string; name: string | null; email: string };
 type CourseRow = {
@@ -20,22 +15,11 @@ type CourseRow = {
 
 export default function CoursesPageClient({
   courses,
-  categories,
-  instructors,
 }: {
   courses: CourseRow[];
   categories: Category[];
   instructors: Instructor[];
 }) {
-  const router = useRouter();
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const handleSuccess = (id: string) => {
-    setModalOpen(false);
-    router.refresh();
-    router.push(`/admin/courses/${id}/curriculum`);
-  };
-
   return (
     <>
       <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
@@ -45,16 +29,6 @@ export default function CoursesPageClient({
             Manage courses, curriculum (modules & lessons), and publication status.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition shadow-sm"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add course
-        </button>
       </div>
 
       {courses.length === 0 ? (
@@ -79,7 +53,6 @@ export default function CoursesPageClient({
                     <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Price</th>
                     <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Published</th>
                     <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Modules / Students</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -106,17 +79,6 @@ export default function CoursesPageClient({
                     <td className="px-6 py-4 text-slate-600">
                       {course._count.modules} modules · {course._count.enrollments} students
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/admin/courses/${course.id}/curriculum`}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition shadow-sm"
-                      >
-                        Curriculum
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -125,45 +87,6 @@ export default function CoursesPageClient({
         </div>
       )}
 
-      {modalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-          onClick={() => setModalOpen(false)}
-        >
-          <div
-            className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h2 className="text-xl font-bold text-slate-900">Add new course</h2>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
-                aria-label="Xir"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="overflow-y-auto flex-1 px-6 py-4">
-              {categories.length === 0 || instructors.length === 0 ? (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-amber-800 text-sm">
-                  No categories or instructors. Add them in the seed and try again.
-                </div>
-              ) : (
-                <CreateCourseForm
-                  categories={categories}
-                  instructors={instructors}
-                  onSuccess={handleSuccess}
-                  onClose={() => setModalOpen(false)}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

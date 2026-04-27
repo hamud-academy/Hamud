@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import PasswordStrengthMeter from "@/components/PasswordStrengthMeter";
+import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
 
 type UserRow = {
   id: string;
@@ -65,6 +67,10 @@ export default function AccountsPageClient() {
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setCreateMessage(null);
+    if (!isStrongPassword(createPassword)) {
+      setCreateMessage({ type: "err", text: strongPasswordMessage() });
+      return;
+    }
     setCreateLoading(true);
     try {
       const res = await fetch("/api/admin/users", {
@@ -105,7 +111,14 @@ export default function AccountsPageClient() {
       if (editName.trim()) body.name = editName.trim();
       if (editEmail.trim()) body.email = editEmail.trim();
       if (editRole && editRole !== editUser.role) body.role = editRole;
-      if (editPassword.length >= 6) body.password = editPassword;
+      if (editPassword.length > 0) {
+        if (!isStrongPassword(editPassword)) {
+          setError(strongPasswordMessage());
+          setSaving(false);
+          return;
+        }
+        body.password = editPassword;
+      }
       const res = await fetch(`/api/admin/users/${editUser.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -194,17 +207,19 @@ export default function AccountsPageClient() {
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm w-48"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Password (min 6) *</label>
+          <div className="min-w-[260px] flex-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">Password *</label>
             <input
               type="password"
               required
-              minLength={6}
+              minLength={8}
               value={createPassword}
               onChange={(e) => setCreatePassword(e.target.value)}
-              placeholder="••••••••"
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm w-40"
+              placeholder="Strong password"
+              autoComplete="new-password"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"
             />
+            <PasswordStrengthMeter password={createPassword} />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-1">Name (optional)</label>
@@ -361,8 +376,9 @@ export default function AccountsPageClient() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">New password (optional, min 6)</label>
-                <input type="password" minLength={6} value={editPassword} onChange={(e) => setEditPassword(e.target.value)} placeholder="Leave blank to keep" className="w-full px-4 py-2.5 border border-slate-200 rounded-xl" />
+                <label className="block text-sm font-medium text-slate-700 mb-1">New password (optional)</label>
+                <input type="password" minLength={8} value={editPassword} onChange={(e) => setEditPassword(e.target.value)} placeholder="Leave blank to keep" className="w-full px-4 py-2.5 border border-slate-200 rounded-xl" />
+                {editPassword && <PasswordStrengthMeter password={editPassword} />}
               </div>
               <div className="flex gap-2 pt-2">
                 <button type="submit" disabled={saving} className="px-4 py-2.5 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:opacity-50">{saving ? "Saving..." : "Save"}</button>

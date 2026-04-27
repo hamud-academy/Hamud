@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, rateLimitKeyFromRequest } from "@/lib/rate-limit";
 
 const signUpSchema = z.object({
   name: z.string().min(1, "Name required").max(100),
@@ -11,6 +12,20 @@ const signUpSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const signupLimit = checkRateLimit(rateLimitKeyFromRequest(request, "signup"), {
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!signupLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many signup attempts. Please try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(signupLimit.retryAfter) },
+        }
+      );
+    }
+
     const body = await request.json();
     const parsed = signUpSchema.safeParse(body);
     if (!parsed.success) {

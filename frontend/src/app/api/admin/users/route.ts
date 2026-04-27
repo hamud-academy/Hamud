@@ -4,10 +4,11 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
 
 const schema = z.object({
   email: z.string().email(),
-  password: z.string().min(6),
+  password: z.string().refine(isStrongPassword, strongPasswordMessage()),
   name: z.string().min(1).optional(),
   role: z.enum(["ADMIN", "INSTRUCTOR", "STUDENT"]),
 });
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Invalid data. Email, password (6+), and role are required." },
+      { error: parsed.error.issues[0]?.message ?? "Invalid data. Email, strong password, and role are required." },
       { status: 400 }
     );
   }

@@ -41,7 +41,7 @@ export default function TeacherAppShell({ children, siteName, logoUrl, userName,
   const imgUnopt = userImage ? userImage.startsWith("http") && userImage.includes("localhost") : false;
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950">
+    <div className="dashboard-theme-scope min-h-screen flex bg-slate-50 dark:bg-slate-950">
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 shadow-sm">
         <button
           type="button"

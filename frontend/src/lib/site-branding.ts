@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { resolveMediaUrl } from "@/lib/resolve-media-url";
 
 const SETTINGS_ID = "default";
 
@@ -8,7 +9,7 @@ export async function getSiteBranding(): Promise<SiteBranding> {
   try {
     const row = await prisma.siteSettings.findUnique({ where: { id: SETTINGS_ID } });
     return {
-      faviconUrl: row?.faviconUrl?.trim() ?? "",
+      faviconUrl: resolveMediaUrl(row?.faviconUrl) ?? "",
       tabTitle: row?.tabTitle?.trim() ?? "",
     };
   } catch {
@@ -19,7 +20,10 @@ export async function getSiteBranding(): Promise<SiteBranding> {
 export async function upsertSiteBranding(partial: { faviconUrl?: string | null; tabTitle?: string | null }) {
   const data: { faviconUrl?: string | null; tabTitle?: string | null } = {};
   if (partial.faviconUrl !== undefined) {
-    data.faviconUrl = partial.faviconUrl === null || partial.faviconUrl === "" ? null : String(partial.faviconUrl).trim();
+    data.faviconUrl =
+      partial.faviconUrl === null || partial.faviconUrl === ""
+        ? null
+        : resolveMediaUrl(String(partial.faviconUrl)) ?? null;
   }
   if (partial.tabTitle !== undefined) {
     data.tabTitle = partial.tabTitle === null || partial.tabTitle === "" ? null : String(partial.tabTitle).trim();

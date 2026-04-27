@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { getLandingConfig } from "@/lib/landing-config";
 import { prisma } from "@/lib/prisma";
 import { resolveMediaUrl } from "@/lib/resolve-media-url";
+import { jsonWithPublicCache } from "@/lib/http-cache";
 
 export async function GET() {
   const [config, studentCount, studentProfiles] = await Promise.all([
@@ -18,5 +18,5 @@ export async function GET() {
     name: u.name ?? "Student",
     image: u.image != null && u.image !== "" ? resolveMediaUrl(u.image) : null,
   }));
-  return NextResponse.json({ ...config, studentCount, studentProfiles: profiles });
+  return jsonWithPublicCache({ ...config, studentCount, studentProfiles: profiles });
 }

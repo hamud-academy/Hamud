@@ -4,6 +4,7 @@ import { AuthError } from "@auth/core/errors";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, rateLimitKeyFromString, resetRateLimit } from "@/lib/rate-limit";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -26,11 +27,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!parsed.success) return null;
 
         const { email, password } = parsed.data;
+        const rateLimitKey = rateLimitKeyFromString(`login:${email}`);
+        const loginLimit = checkRateLimit(rateLimitKey, {
+          limit: 8,
+          windowMs: 15 * 60 * 1000,
+        });
+        if (!loginLimit.allowed) return null;
+
         const user = await prisma.user.findUnique({ where: { email } });
         if (!user || !user.passwordHash) return null;
 
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
+        resetRateLimit(rateLimitKey);
 
         return {
           id: user.id,
@@ -54,15 +63,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (session.user && token.id) {
         (session.user as { id?: string }).id = token.id as string;
         (session.user as { role?: string }).role = token.role as string;
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { name: true, image: true, email: true },
-        });
-        if (dbUser) {
-          session.user.name = dbUser.name ?? session.user.name ?? null;
-          session.user.image = dbUser.image ?? session.user.image ?? null;
-          session.user.email = dbUser.email ?? session.user.email ?? null;
-        }
       }
       return session;
     },

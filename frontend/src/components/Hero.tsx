@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
 
 const defaultConfig = {
@@ -44,19 +43,21 @@ export default function Hero() {
   const afterHighlight = highlightIdx >= 0 ? heroHeading.slice(highlightIdx + heroHeadingHighlight.length) : "";
 
   return (
-    <section className="relative pt-20 sm:pt-24 md:pt-28 lg:pt-32 pb-10 sm:pb-12 lg:pb-14 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50/80 to-white dark:from-slate-900 dark:to-slate-950 overflow-hidden min-h-0 max-h-[100vh] flex flex-col">
-      <div className="max-w-7xl mx-auto flex-1 min-h-0 flex flex-col justify-center">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center min-h-0">
+    <section className="relative overflow-hidden bg-white px-4 pb-14 pt-16 sm:px-6 sm:pb-16 sm:pt-20 lg:px-8 lg:pb-20 lg:pt-24 dark:bg-slate-950">
+      <div className="pointer-events-none absolute -left-24 top-10 h-64 w-64 rounded-full bg-blue-100/70 blur-3xl dark:bg-blue-900/20" />
+      <div className="pointer-events-none absolute right-8 top-24 h-72 w-72 rounded-full bg-slate-100/80 blur-3xl dark:bg-indigo-900/20" />
+      <div className="relative mx-auto max-w-6xl">
+        <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[0.82fr_1.18fr] lg:gap-10">
           {/* Left: copy + search + social proof */}
-          <div className="order-2 lg:order-1 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-semibold mb-6 shadow-sm border border-blue-200/50 dark:border-blue-800/50">
-              <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          <div className="order-2 text-center lg:order-1 lg:max-w-[520px] lg:text-left">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-blue-700 shadow-sm ring-1 ring-blue-100 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-900/60">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
               <span>{heroTagline}</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[2.75rem] xl:text-5xl font-bold text-slate-900 dark:text-white leading-tight mb-4 sm:mb-5 max-w-xl mx-auto lg:mx-0">
+            <h1 className="mx-auto mb-5 max-w-3xl text-[2.45rem] font-extrabold leading-[1.15] tracking-tight text-slate-950 sm:text-5xl lg:mx-0 lg:text-[3rem] dark:text-white">
               {beforeHighlight}
               {heroHeadingHighlight && highlightIdx >= 0 && (
                 <span className="text-blue-600 dark:text-blue-400">{heroHeadingHighlight}</span>
@@ -64,35 +65,37 @@ export default function Hero() {
               {afterHighlight}
             </h1>
 
-            <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg max-w-lg mx-auto lg:mx-0 mb-6 sm:mb-8 leading-relaxed">
+            <p className="mx-auto mb-7 max-w-xl text-base leading-7 text-slate-600 lg:mx-0 dark:text-slate-300">
               {heroDescription}
             </p>
 
-            <form onSubmit={handleSearch} className="max-w-xl mx-auto lg:mx-0 mb-6 sm:mb-8">
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 bg-white dark:bg-slate-800/80 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-600 shadow-lg shadow-slate-200/50 dark:shadow-slate-950/50 overflow-hidden">
-                <span className="flex items-center pl-4 sm:pl-5 text-slate-400 dark:text-slate-500 pointer-events-none">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </span>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search for courses (e.g. Coding, Design)"
-                  className="flex-1 min-w-0 py-3.5 sm:py-4 px-3 sm:px-4 border-0 focus:ring-0 focus:outline-none text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-transparent text-sm sm:text-base"
-                />
+            <form onSubmit={handleSearch} className="mx-auto mb-7 max-w-[530px] lg:mx-0">
+              <div className="flex min-h-14 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm shadow-slate-200/70 dark:border-slate-700 dark:bg-slate-900 dark:shadow-none">
+                <div className="flex min-w-0 flex-1 items-center px-4">
+                  <span className="pointer-events-none text-slate-400 dark:text-slate-500">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </span>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search for courses (e.g. Coding, Design)"
+                    className="min-w-0 flex-1 border-0 bg-transparent px-4 py-4 text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 dark:text-slate-100 dark:placeholder-slate-500"
+                  />
+                </div>
                 <button
                   type="submit"
-                  className="sm:ml-2 px-5 sm:px-6 py-3.5 sm:py-4 bg-blue-600 text-white font-semibold hover:bg-blue-700 transition text-sm sm:text-base flex-shrink-0"
+                  className="inline-flex min-h-14 items-center justify-center bg-blue-600 px-7 text-sm font-bold text-white transition hover:bg-blue-700"
                 >
                   Search
                 </button>
               </div>
             </form>
 
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 text-sm text-slate-600 dark:text-slate-400">
-              <div className="flex -space-x-2">
+            <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-slate-600 lg:justify-start dark:text-slate-400">
+              <div className="flex -space-x-2.5">
                 {(studentProfiles && studentProfiles.length > 0
                   ? studentProfiles.slice(0, 6)
                   : [{ name: "A", image: null }, { name: "B", image: null }, { name: "C", image: null }, { name: "D", image: null }]
@@ -100,57 +103,31 @@ export default function Hero() {
                   <span
                     key={i}
                     title={student.name}
-                    className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white dark:border-slate-700 flex items-center justify-center text-white text-xs font-semibold overflow-hidden flex-shrink-0 ring-2 ring-white dark:ring-slate-800"
+                    className="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-gradient-to-br from-blue-400 to-blue-600 text-xs font-semibold text-white shadow-sm ring-2 ring-white dark:border-slate-700 dark:ring-slate-800"
                   >
                     {student.image ? (
-                      <img src={student.image} alt="" className="w-full h-full object-cover" />
+                      <img src={student.image} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <span>{student.name.charAt(0).toUpperCase()}</span>
                     )}
                   </span>
                 ))}
               </div>
-              <span className="font-medium text-slate-700 dark:text-slate-300">{displayStudentText}</span>
+              <span className="text-xs font-medium text-slate-700 sm:text-sm dark:text-slate-300">{displayStudentText}</span>
             </div>
           </div>
 
           {/* Right: image card + overlay stats */}
-          <div className="order-1 lg:order-2 relative min-h-0 flex items-center">
-            <div className={`relative w-full max-w-2xl mx-auto lg:max-w-none rounded-2xl lg:rounded-3xl overflow-hidden shadow-2xl shadow-slate-300/30 dark:shadow-slate-950/60 ring-1 ring-slate-200/50 dark:ring-slate-700/50 ${heroImageUrl ? "aspect-[4/3] lg:aspect-[5/4] max-h-[45vh] sm:max-h-[50vh] lg:max-h-[55vh]" : "aspect-[4/3] lg:aspect-[6/5]"}`}>
+          <div className="relative order-1 flex w-full items-center justify-center lg:order-2">
+            <div className={`relative mx-auto w-full overflow-visible rounded-[1.35rem] bg-white shadow-2xl shadow-slate-200/70 dark:bg-slate-900 dark:shadow-slate-950/60 ${heroImageUrl ? "aspect-[1.65/1]" : "aspect-[1.65/1]"}`}>
+              <div className="absolute inset-0 overflow-hidden rounded-[1.35rem] ring-1 ring-slate-200/80 dark:ring-slate-700/60">
                   {heroImageUrl ? (
                 <>
                   <img
                     src={heroImageUrl}
                     alt=""
-                    className="absolute inset-0 w-full h-full object-contain object-center"
+                    className="absolute inset-0 h-full w-full object-contain object-center"
                   />
-                  {/* Overlay cards on top of image */}
-                  <div className="absolute top-4 left-4 sm:top-5 sm:left-5 right-auto w-auto">
-                    <div className="flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl bg-emerald-50 shadow-md border border-emerald-100">
-                      <div className="w-8 h-8 rounded-md bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-[10px] sm:text-xs font-semibold text-emerald-800 uppercase tracking-wide">Success Rate</p>
-                        <p className="text-sm sm:text-base font-bold text-emerald-900">98.5%</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-4 right-4 sm:bottom-5 sm:right-5 left-auto w-auto">
-                    <div className="flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl bg-slate-800 shadow-md border border-slate-700">
-                      <div className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-[10px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wide">Quality Courses</p>
-                      </div>
-                    </div>
-                  </div>
                 </>
               ) : (
                 <>
@@ -162,34 +139,32 @@ export default function Hero() {
                       </svg>
                     </div>
                   </div>
-                  <div className="absolute top-4 left-4 sm:top-5 sm:left-5 right-auto w-auto">
-                    <div className="flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl bg-emerald-50 shadow-md border border-emerald-100">
-                      <div className="w-8 h-8 rounded-md bg-emerald-500 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-[10px] sm:text-xs font-semibold text-emerald-800 uppercase tracking-wide">Success Rate</p>
-                        <p className="text-sm sm:text-base font-bold text-emerald-900">98.5%</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute bottom-4 right-4 sm:bottom-5 sm:right-5 left-auto w-auto">
-                    <div className="flex items-center gap-2 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-lg sm:rounded-xl bg-slate-800 shadow-md border border-slate-700">
-                      <div className="w-8 h-8 rounded-md bg-blue-500 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-[10px] sm:text-xs font-semibold text-slate-300 uppercase tracking-wide">Quality Courses</p>
-                      </div>
-                    </div>
-                  </div>
                 </>
               )}
+              </div>
+              <div className="absolute -left-3 top-7 rounded-xl bg-emerald-50 px-4 py-3 shadow-lg shadow-slate-900/10 ring-1 ring-emerald-100 sm:left-5 dark:bg-emerald-950 dark:ring-emerald-900">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17l4-4 3 3 5-6" />
+                    </svg>
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">Success Rate</p>
+                    <p className="text-sm font-extrabold text-slate-900 dark:text-white">98.5%</p>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute bottom-5 right-4 rounded-xl bg-slate-900 px-4 py-3 text-white shadow-xl shadow-slate-900/20 sm:right-5">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
+                    </svg>
+                  </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Quality Courses</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

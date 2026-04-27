@@ -4,12 +4,13 @@ import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { isStrongPassword } from "@/lib/password-strength";
 
 const updateSchema = z.object({
   name: z.string().min(1).optional().nullable(),
   email: z.string().email().optional(),
   role: z.enum(["ADMIN", "INSTRUCTOR", "STUDENT"]).optional(),
-  password: z.string().min(6).optional(),
+  password: z.string().refine(isStrongPassword).optional(),
 });
 
 export async function GET(
@@ -81,7 +82,7 @@ export async function PATCH(
   if (data.name !== undefined) updateData.name = data.name;
   if (data.email !== undefined) updateData.email = data.email;
   if (data.role !== undefined) updateData.role = data.role as UserRole;
-  if (data.password && data.password.length >= 6) {
+  if (data.password) {
     updateData.passwordHash = await bcrypt.hash(data.password, 12);
   }
 

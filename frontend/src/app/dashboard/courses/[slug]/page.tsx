@@ -132,6 +132,14 @@ export default async function DashboardCoursePage({ params }: Props) {
               <p>{totalLessons} Lessons</p>
               <p>Course Certificate</p>
             </div>
+            {enrollment.completed && (
+              <Link
+                href={`/api/certificates/${enrollment.id}`}
+                className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-600"
+              >
+                Download certificate
+              </Link>
+            )}
           </div>
         </div>
       </div>

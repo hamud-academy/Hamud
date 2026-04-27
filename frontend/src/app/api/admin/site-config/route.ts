@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { getSiteConfig } from "@/lib/site-config";
+import { getSiteConfig, saveSiteConfig } from "@/lib/site-config";
 import { getSiteBranding, upsertSiteBranding } from "@/lib/site-branding";
 
-const CONFIG_PATH = path.join(process.cwd(), "data", "site-config.json");
 const defaultConfig = { siteName: "BaroSmart", logoUrl: "", accentSuffix: "" };
 
 export async function GET() {
@@ -63,8 +60,7 @@ export async function PATCH(request: NextRequest) {
     if (body.logoUrl !== undefined) current.logoUrl = body.logoUrl == null ? "" : String(body.logoUrl).trim();
     if (body.accentSuffix !== undefined) current.accentSuffix = body.accentSuffix == null ? "" : String(body.accentSuffix).trim();
     try {
-      await mkdir(path.dirname(CONFIG_PATH), { recursive: true });
-      await writeFile(CONFIG_PATH, JSON.stringify(current, null, 2), "utf-8");
+      current = await saveSiteConfig(current);
     } catch (e) {
       console.error("site-config write error:", e);
       return NextResponse.json({ error: "Failed to save config" }, { status: 500 });

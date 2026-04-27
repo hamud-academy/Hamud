@@ -52,3 +52,95 @@ body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Dashboard/admin/teacher pages use many shared light utility classes.
+   Scope these overrides so public marketing pages keep their own styling. */
+.dark .dashboard-theme-scope {
+  color-scheme: dark;
+}
+
+.dark .dashboard-theme-scope,
+.dark .dashboard-theme-scope main,
+.dark .dashboard-theme-scope main > [class~="min-h-screen"] {
+  background-color: rgb(2 6 23) !important;
+}
+
+.dark .dashboard-theme-scope [class~="bg-gradient-to-br"],
+.dark .dashboard-theme-scope [class~="bg-gradient-to-b"],
+.dark .dashboard-theme-scope [class~="bg-gradient-to-r"],
+.dark .dashboard-theme-scope [class~="from-slate-50"],
+.dark .dashboard-theme-scope [class~="via-white"],
+.dark .dashboard-theme-scope [class~="to-emerald-50/30"],
+.dark .dashboard-theme-scope [class~="to-teal-50/30"],
+.dark .dashboard-theme-scope [class~="to-blue-50/40"] {
+  background-color: rgb(2 6 23) !important;
+  background-image: linear-gradient(135deg, rgb(2 6 23), rgb(15 23 42) 52%, rgb(15 23 42)) !important;
+}
+
+.dark .dashboard-theme-scope [class~="bg-white"],
+.dark .dashboard-theme-scope [class~="bg-white/80"],
+.dark .dashboard-theme-scope [class~="bg-white/90"],
+.dark .dashboard-theme-scope [class~="bg-slate-50"],
+.dark .dashboard-theme-scope [class~="bg-slate-50/50"],
+.dark .dashboard-theme-scope [class~="bg-slate-50/80"],
+.dark .dashboard-theme-scope [class~="bg-gray-50"] {
+  background-color: rgb(15 23 42 / 0.92) !important;
+}
+
+.dark .dashboard-theme-scope [class~="bg-slate-100"],
+.dark .dashboard-theme-scope [class~="bg-slate-100/80"],
+.dark .dashboard-theme-scope [class~="bg-gray-100"],
+.dark .dashboard-theme-scope [class~="bg-slate-200"],
+.dark .dashboard-theme-scope [class~="bg-slate-200/80"] {
+  background-color: rgb(30 41 59 / 0.9) !important;
+}
+
+.dark .dashboard-theme-scope [class~="text-slate-900"],
+.dark .dashboard-theme-scope [class~="text-gray-900"],
+.dark .dashboard-theme-scope [class~="text-slate-800"],
+.dark .dashboard-theme-scope [class~="text-gray-800"],
+.dark .dashboard-theme-scope [class~="text-slate-700"],
+.dark .dashboard-theme-scope [class~="text-gray-700"] {
+  color: rgb(226 232 240) !important;
+}
+
+.dark .dashboard-theme-scope [class~="text-slate-600"],
+.dark .dashboard-theme-scope [class~="text-gray-600"],
+.dark .dashboard-theme-scope [class~="text-slate-500"],
+.dark .dashboard-theme-scope [class~="text-gray-500"] {
+  color: rgb(148 163 184) !important;
+}
+
+.dark .dashboard-theme-scope [class~="border-slate-100"],
+.dark .dashboard-theme-scope [class~="border-slate-200"],
+.dark .dashboard-theme-scope [class~="border-slate-200/80"],
+.dark .dashboard-theme-scope [class~="border-gray-100"],
+.dark .dashboard-theme-scope [class~="border-gray-200"],
+.dark .dashboard-theme-scope [class~="divide-slate-100"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgb(51 65 85 / 0.9) !important;
+}
+
+.dark .dashboard-theme-scope input,
+.dark .dashboard-theme-scope select,
+.dark .dashboard-theme-scope textarea {
+  background-color: rgb(15 23 42 / 0.95) !important;
+  border-color: rgb(51 65 85 / 0.95) !important;
+  color: rgb(226 232 240) !important;
+}
+
+.dark .dashboard-theme-scope input::placeholder,
+.dark .dashboard-theme-scope textarea::placeholder {
+  color: rgb(100 116 139) !important;
+}
+
+.dark .dashboard-theme-scope table thead tr,
+.dark .dashboard-theme-scope [class~="hover:bg-slate-50/50"]:hover,
+.dark .dashboard-theme-scope [class~="hover:bg-slate-50"]:hover {
+  background-color: rgb(30 41 59 / 0.65) !important;
+}
+
+.dark .dashboard-theme-scope .shadow-sm,
+.dark .dashboard-theme-scope .shadow-xl,
+.dark .dashboard-theme-scope [class*="shadow-"] {
+  box-shadow: 0 18px 50px -30px rgb(0 0 0 / 0.8) !important;
+}

@@ -1,7 +1,10 @@
 import { readFile } from "fs/promises";
 import path from "path";
+import { getAppConfig, saveAppConfig } from "@/lib/app-config-store";
+import { resolveMediaUrl } from "@/lib/resolve-media-url";
 
 const CONFIG_PATH = path.join(process.cwd(), "data", "about-config.json");
+const CONFIG_KEY = "about-config";
 
 export type AboutFeature = { title: string; description: string };
 
@@ -62,32 +65,46 @@ function str(v: unknown): string {
 }
 
 export async function getAboutConfig(): Promise<AboutConfig> {
+  const dbConfig = await getAppConfig<Partial<AboutConfig>>(CONFIG_KEY);
+  if (dbConfig) return normalizeAboutConfig(dbConfig);
+
   try {
     const raw = await readFile(CONFIG_PATH, "utf-8");
     const data = JSON.parse(raw) as Partial<AboutConfig>;
-    const d = defaultAboutConfig;
-    const features = Array.isArray(data.features) && data.features.length >= 3
-      ? data.features.slice(0, 3).map((f: { title?: string; description?: string }) => ({
-          title: str(f.title) || "Feature",
-          description: str(f.description) || "",
-        }))
-      : d.features;
-    return {
-      heroTagline: str(data.heroTagline) || d.heroTagline,
-      heroHeading: str(data.heroHeading) || d.heroHeading,
-      heroDescription: str(data.heroDescription) || d.heroDescription,
-      heroBackgroundImageUrl: str(data.heroBackgroundImageUrl) || d.heroBackgroundImageUrl,
-      missionTitle: str(data.missionTitle) || d.missionTitle,
-      missionText: str(data.missionText) || d.missionText,
-      visionTitle: str(data.visionTitle) || d.visionTitle,
-      visionText: str(data.visionText) || d.visionText,
-      whyChooseUsTitle: str(data.whyChooseUsTitle) || d.whyChooseUsTitle,
-      whyChooseUsIntro: str(data.whyChooseUsIntro) || d.whyChooseUsIntro,
-      features,
-      ctaLabel: str(data.ctaLabel) || d.ctaLabel,
-      ctaHref: str(data.ctaHref) || d.ctaHref,
-    };
+    return normalizeAboutConfig(data);
   } catch {
     return defaultAboutConfig;
   }
+}
+
+export function normalizeAboutConfig(data: Partial<AboutConfig>): AboutConfig {
+  const d = defaultAboutConfig;
+  const features = Array.isArray(data.features) && data.features.length >= 3
+    ? data.features.slice(0, 3).map((f: { title?: string; description?: string }) => ({
+        title: str(f.title) || "Feature",
+        description: str(f.description) || "",
+      }))
+    : d.features;
+  return {
+    heroTagline: str(data.heroTagline) || d.heroTagline,
+    heroHeading: str(data.heroHeading) || d.heroHeading,
+    heroDescription: str(data.heroDescription) || d.heroDescription,
+    heroBackgroundImageUrl:
+      resolveMediaUrl(str(data.heroBackgroundImageUrl)) ?? d.heroBackgroundImageUrl,
+    missionTitle: str(data.missionTitle) || d.missionTitle,
+    missionText: str(data.missionText) || d.missionText,
+    visionTitle: str(data.visionTitle) || d.visionTitle,
+    visionText: str(data.visionText) || d.visionText,
+    whyChooseUsTitle: str(data.whyChooseUsTitle) || d.whyChooseUsTitle,
+    whyChooseUsIntro: str(data.whyChooseUsIntro) || d.whyChooseUsIntro,
+    features,
+    ctaLabel: str(data.ctaLabel) || d.ctaLabel,
+    ctaHref: str(data.ctaHref) || d.ctaHref,
+  };
+}
+
+export async function saveAboutConfig(config: AboutConfig): Promise<AboutConfig> {
+  const normalized = normalizeAboutConfig(config);
+  await saveAppConfig(CONFIG_KEY, normalized);
+  return normalized;
 }

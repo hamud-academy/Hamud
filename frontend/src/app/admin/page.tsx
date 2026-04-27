@@ -11,6 +11,10 @@ const now = new Date();
 const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+const thirtyDaysAgo = new Date(now);
+thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+const sixtyDaysAgo = new Date(now);
+sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
 function pctChange(current: number, previous: number): string {
   if (previous === 0) return current > 0 ? "+100%" : "0%";
@@ -46,12 +50,12 @@ export default async function AdminDashboardPage() {
     prisma.enrollment.count({ where: { enrolledAt: { gte: thisMonthStart } } }),
     prisma.order.count({ where: { status: "PAID" } }),
     prisma.order.count({ where: { status: "PAID", paidAt: { gte: lastMonthStart, lte: lastMonthEnd } } }),
-    prisma.user.count({ where: { createdAt: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } } }),
+    prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
     prisma.user.count({
       where: {
         createdAt: {
-          gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
-          lt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          gte: sixtyDaysAgo,
+          lt: thirtyDaysAgo,
         },
       },
     }),
@@ -128,21 +132,25 @@ export default async function AdminDashboardPage() {
     {
       label: "Total Revenue",
       value: `$${totalRevenue.toFixed(2)}`,
+      change: revenueChange,
       icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
     },
     {
       label: "Active Students",
       value: String(activeStudentsCount),
+      change: studentsChange,
       icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
     },
     {
       label: "Courses Sold",
       value: String(coursesSoldCount),
+      change: coursesSoldChange,
       icon: "M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z",
     },
     {
       label: "New Signups",
       value: String(newSignups),
+      change: signupsChange,
       icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z",
     },
   ];
@@ -167,6 +175,7 @@ export default async function AdminDashboardPage() {
                 <div>
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{card.label}</p>
                   <p className="text-2xl font-bold text-slate-900 dark:text-white">{card.value}</p>
+                  <p className="mt-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">{card.change}</p>
                 </div>
                 <span className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
                   {cardIcon(card.icon)}

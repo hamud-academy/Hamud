@@ -14,10 +14,9 @@ function slugify(name: string): string {
 }
 
 async function uniqueSlug(base: string): Promise<string> {
-  let slug = base;
   let n = 0;
   for (;;) {
-    const candidate = n === 0 ? slug : `${base}-${n}`;
+    const candidate = n === 0 ? base : `${base}-${n}`;
     const exists = await prisma.category.findUnique({ where: { slug: candidate } });
     if (!exists) return candidate;
     n += 1;

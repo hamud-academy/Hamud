@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const icons = {
   dashboard: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 6a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V6zM14 16a2 2 0 00-2-2h-2a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2z",
@@ -56,17 +56,9 @@ function NavLink({
   );
 }
 
-export default function AdminNav({ role, onNavigate }: { role?: string; onNavigate?: () => void }) {
+export default function AdminNav({ onNavigate }: { role?: string; onNavigate?: () => void }) {
   const pathname = usePathname();
-  const [systemConfigOpen, setSystemConfigOpen] = useState(
-    pathname.startsWith("/admin/system-config") || pathname.startsWith("/admin/categories")
-  );
-
-  useEffect(() => {
-    if (pathname.startsWith("/admin/system-config") || pathname.startsWith("/admin/categories")) {
-      setSystemConfigOpen(true);
-    }
-  }, [pathname]);
+  const [systemConfigOpen, setSystemConfigOpen] = useState(false);
 
   const isActive = (href: string) => {
     if (href === "/admin") return pathname === "/admin";
@@ -95,6 +87,7 @@ export default function AdminNav({ role, onNavigate }: { role?: string; onNaviga
         if (item.href === "/admin/system-config") {
           const active =
             pathname.startsWith("/admin/system-config") || pathname.startsWith("/admin/categories");
+          const showSystemConfigChildren = active || systemConfigOpen;
           return (
             <div key={item.href}>
               <button
@@ -111,7 +104,7 @@ export default function AdminNav({ role, onNavigate }: { role?: string; onNaviga
                 </svg>
                 <span className="flex-1 text-left">{item.label}</span>
                 <svg
-                  className={`w-4 h-4 flex-shrink-0 transition-transform ${systemConfigOpen ? "rotate-180" : ""}`}
+                  className={`w-4 h-4 flex-shrink-0 transition-transform ${showSystemConfigChildren ? "rotate-180" : ""}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -119,7 +112,7 @@ export default function AdminNav({ role, onNavigate }: { role?: string; onNaviga
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              {systemConfigOpen && (
+              {showSystemConfigChildren && (
                 <div className="ml-4 mt-0.5 pl-4 border-l border-slate-200 dark:border-slate-700 space-y-0.5">
                   {[
                     { href: "/admin/categories", label: "Most Popular Categories" },

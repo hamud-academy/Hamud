@@ -46,7 +46,8 @@ export default async function AdminDashboardPage() {
       where: { status: "PAID", paidAt: { gte: lastMonthStart, lte: lastMonthEnd } },
       _sum: { amount: true },
     }),
-    prisma.enrollment.findMany({ select: { userId: true } }).then((e) => new Set(e.map((x) => x.userId)).size),
+    prisma.$queryRaw<Array<{ count: bigint }>>`SELECT COUNT(DISTINCT user_id)::bigint AS count FROM enrollments`
+      .then((rows) => Number(rows[0]?.count ?? 0)),
     prisma.enrollment.count({ where: { enrolledAt: { gte: thisMonthStart } } }),
     prisma.order.count({ where: { status: "PAID" } }),
     prisma.order.count({ where: { status: "PAID", paidAt: { gte: lastMonthStart, lte: lastMonthEnd } } }),

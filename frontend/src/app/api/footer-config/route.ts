@@ -1,7 +1,7 @@
-import { getAboutConfig } from "@/lib/about-config";
+import { getFooterConfig } from "@/lib/footer-config";
 import { jsonWithPublicCache } from "@/lib/http-cache";
 
 export async function GET() {
-  const config = await getAboutConfig();
+  const config = await getFooterConfig();
   return jsonWithPublicCache(config);
 }

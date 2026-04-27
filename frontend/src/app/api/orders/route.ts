@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
 import { checkRateLimit, rateLimitKeyFromRequest } from "@/lib/rate-limit";
+import { getPublicAppOrigin } from "@/lib/resolve-media-url";
 
 const schema = z.object({
   courseId: z.string(),
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
     if (!adminEmail) {
       console.warn("[Orders] ADMIN_EMAIL not set in .env - email not sent.");
     } else {
-      const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+      const baseUrl = getPublicAppOrigin();
       const result = await sendEmail({
         to: adminEmail,
         subject: `New order (Pending) - ${course.title}`,
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
           <p>Course: ${course.title}</p>
           <p>Amount: $${Number(amount).toFixed(2)}</p>
           <p>Payment method: ${paymentMethod}${paymentRef ? ` | Reference: ${paymentRef}` : ""}</p>
-          <p><a href="${baseUrl}/admin/requests">View Admin Requests (Dashboard)</a></p>
+          ${baseUrl ? `<p><a href="${baseUrl}/admin/requests">View Admin Requests (Dashboard)</a></p>` : ""}
         `,
       });
       if (!result.ok) {

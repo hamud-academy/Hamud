@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { normalizePublicMediaUrl } from "@/lib/resolve-media-url";
 import { z } from "zod";
 
 const quizQuestionSchema = z.object({
@@ -94,13 +95,22 @@ export async function POST(
     }
   }
 
+  const videoUrl = normalizePublicMediaUrl(parsed.data.videoUrl, "Lesson video URL");
+  if (!videoUrl.ok) {
+    return NextResponse.json({ error: videoUrl.message }, { status: 400 });
+  }
+  const documentUrl = normalizePublicMediaUrl(parsed.data.documentUrl, "Lesson document URL");
+  if (!documentUrl.ok) {
+    return NextResponse.json({ error: documentUrl.message }, { status: 400 });
+  }
+
   const lesson = await prisma.$transaction(async (tx) => {
     const l = await tx.lesson.create({
       data: {
         moduleId,
         title: parsed.data.title,
-        videoUrl: parsed.data.videoUrl || null,
-        documentUrl: parsed.data.documentUrl || null,
+        videoUrl: videoUrl.value,
+        documentUrl: documentUrl.value,
         duration: parsed.data.duration ?? null,
         order,
       },

@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { getSiteConfig, saveSiteConfig } from "@/lib/site-config";
 import { getSiteBranding, upsertSiteBranding } from "@/lib/site-branding";
+import { normalizePublicMediaUrl } from "@/lib/resolve-media-url";
 
 const defaultConfig = { siteName: "BaroSmart", logoUrl: "", accentSuffix: "" };
 
@@ -36,9 +37,17 @@ export async function PATCH(request: NextRequest) {
   }
 
   if (body.faviconUrl !== undefined || body.tabTitle !== undefined) {
+    let faviconUrl = body.faviconUrl;
+    if (body.faviconUrl !== undefined) {
+      const normalizedFavicon = normalizePublicMediaUrl(body.faviconUrl, "Favicon URL");
+      if (!normalizedFavicon.ok) {
+        return NextResponse.json({ error: normalizedFavicon.message }, { status: 400 });
+      }
+      faviconUrl = normalizedFavicon.value;
+    }
     try {
       await upsertSiteBranding({
-        ...(body.faviconUrl !== undefined && { faviconUrl: body.faviconUrl }),
+        ...(body.faviconUrl !== undefined && { faviconUrl }),
         ...(body.tabTitle !== undefined && { tabTitle: body.tabTitle }),
       });
     } catch (e) {
@@ -57,7 +66,13 @@ export async function PATCH(request: NextRequest) {
   let current = await getSiteConfig();
   if (hasFileConfigUpdate) {
     if (body.siteName !== undefined) current.siteName = String(body.siteName).trim() || defaultConfig.siteName;
-    if (body.logoUrl !== undefined) current.logoUrl = body.logoUrl == null ? "" : String(body.logoUrl).trim();
+    if (body.logoUrl !== undefined) {
+      const logoUrl = normalizePublicMediaUrl(body.logoUrl, "Logo URL");
+      if (!logoUrl.ok) {
+        return NextResponse.json({ error: logoUrl.message }, { status: 400 });
+      }
+      current.logoUrl = logoUrl.value ?? "";
+    }
     if (body.accentSuffix !== undefined) current.accentSuffix = body.accentSuffix == null ? "" : String(body.accentSuffix).trim();
     try {
       current = await saveSiteConfig(current);

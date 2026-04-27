@@ -158,7 +158,7 @@ export default function Header() {
               </Link>
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition"
+                className="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-[#1447E6] text-white text-sm font-semibold shadow-lg shadow-[rgba(20,71,230,0.25)] hover:bg-[#0F35AD] transition"
               >
                 Get Started
               </Link>
@@ -167,7 +167,7 @@ export default function Header() {
             <div className="flex sm:hidden items-center gap-2">
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-md shadow-blue-500/25"
+                className="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#1447E6] text-white text-sm font-semibold shadow-md shadow-[rgba(20,71,230,0.25)]"
               >
                 Log in
               </Link>

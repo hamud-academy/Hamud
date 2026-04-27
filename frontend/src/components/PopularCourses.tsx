@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { resolveMediaUrl } from "@/lib/resolve-media-url";
 
-async function getCourses() {
+const getCourses = unstable_cache(async () => {
   return prisma.course.findMany({
     where: { published: true },
     include: {
@@ -13,7 +14,7 @@ async function getCourses() {
     take: 4,
     orderBy: { createdAt: "desc" },
   });
-}
+}, ["popular-courses"], { revalidate: 300 });
 
 function formatDuration(hours: number | null) {
   if (!hours) return "—";
@@ -122,7 +123,7 @@ export default async function PopularCourses() {
 
         {courses.length === 0 && (
           <div className="text-center py-16 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
-            <p className="text-slate-600 dark:text-slate-300">Koorsooyin wali ma jiraan. Dhowr maalmood ka dib soo noqo.</p>
+            <p className="text-slate-600 dark:text-slate-300">No courses are available yet. Please check back soon.</p>
             <Link href="/courses" className="inline-block mt-4 text-blue-600 dark:text-blue-400 font-medium hover:underline">
               Browse courses
             </Link>

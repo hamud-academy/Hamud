@@ -8,7 +8,7 @@ export default async function ContactPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen pt-16 bg-slate-50">
+      <main className="min-h-screen pt-16 bg-slate-50 dark:bg-slate-950">
         <ContactSection initialConfig={initialConfig} />
       </main>
       <Footer />

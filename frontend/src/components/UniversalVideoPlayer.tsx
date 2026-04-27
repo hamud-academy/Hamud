@@ -81,7 +81,7 @@ export default function UniversalVideoPlayer({
               d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
             />
           </svg>
-          <p>Video ma la gelin</p>
+          <p>No video has been added</p>
         </div>
       </div>
     );
@@ -123,7 +123,7 @@ export default function UniversalVideoPlayer({
           poster={posterUrl ?? undefined}
           controls
           className="w-full h-full"
-          onError={() => setError("Video ma soo bixin karin")}
+          onError={() => setError("The video could not be loaded")}
         >
           {error && (
             <div className="absolute inset-0 flex items-center justify-center text-red-500 bg-gray-900">

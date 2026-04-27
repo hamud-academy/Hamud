@@ -11,9 +11,9 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
-const DEFAULT_TITLE = "BaroSmart - Baro aqoon tayo leh, meel kasta";
+const DEFAULT_TITLE = "BaroSmart - Quality learning, wherever you are";
 const DEFAULT_DESCRIPTION =
-  "Ku biir kumanaan arday ah oo baranaya xirfadihii ugu dambeeyay. Baro aqoon tayo leh, meel kasta oo aad joogto.";
+  "Join thousands of students learning the latest skills. Learn quality knowledge wherever you are.";
 
 function faviconPathFromUrl(faviconUrl: string): string | null {
   try {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import type { ContactConfig, ContactPhone, ContactEmail, ContactHeadOffice, ContactSocialLink } from "@/lib/contact-config";
+import SocialIcon, { SOCIAL_PLATFORM_OPTIONS, getSocialPlatformLabel } from "@/components/SocialIcon";
 
 function genId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2);
@@ -226,13 +227,24 @@ export default function ContactConfigClient() {
         <div className="space-y-3">
           {config.socialLinks.map((s) => (
             <div key={s.id} className="flex gap-2 items-center flex-wrap">
-              <input
-                type="text"
-                placeholder="Magac (e.g. Facebook, Instagram)"
+              <span className="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center">
+                <SocialIcon platform={s.platform} />
+              </span>
+              <select
                 value={s.platform}
                 onChange={(e) => updateSocial(s.id, { platform: e.target.value })}
-                className="w-40 px-3 py-2 border border-slate-200 rounded-lg"
-              />
+                className="w-52 px-3 py-2 border border-slate-200 rounded-lg bg-white"
+                aria-label="Choose social media icon"
+              >
+                {!SOCIAL_PLATFORM_OPTIONS.some((option) => option.value === s.platform) && (
+                  <option value={s.platform}>{getSocialPlatformLabel(s.platform)}</option>
+                )}
+                {SOCIAL_PLATFORM_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
               <input
                 type="url"
                 placeholder="URL"

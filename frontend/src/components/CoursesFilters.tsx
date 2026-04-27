@@ -135,7 +135,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-indigo-500 hover:shadow-blue-500/35 disabled:translate-y-0 disabled:opacity-60"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-[#1447E6] px-5 text-sm font-bold text-white shadow-lg shadow-[rgba(20,71,230,0.25)] transition hover:-translate-y-0.5 hover:bg-[#0F35AD] hover:shadow-[rgba(20,71,230,0.35)] disabled:translate-y-0 disabled:opacity-60"
             >
               {isPending ? "..." : "Search"}
             </button>
@@ -158,7 +158,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                 onClick={() => startTransition(() => router.push(buildUrl(params, { category: null, page: null })))}
                 className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
                   !currentCategory
-                    ? "border-transparent bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                    ? "border-transparent bg-[#1447E6] text-white shadow-lg shadow-[rgba(20,71,230,0.25)]"
                     : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
                 }`}
               >
@@ -167,7 +167,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </span>
-                Dhammaan
+                All
                 <span className={`rounded-md px-1.5 py-0.5 text-[11px] tabular-nums ${!currentCategory ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300"}`}>
                   {totalInCategories}
                 </span>
@@ -182,7 +182,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                     onClick={() => startTransition(() => router.push(buildUrl(params, { category: cat.slug, page: null })))}
                     className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
                       active
-                        ? "border-transparent bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                        ? "border-transparent bg-[#1447E6] text-white shadow-lg shadow-[rgba(20,71,230,0.25)]"
                         : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
                     }`}
                   >
@@ -206,7 +206,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </span>
-              Heerka
+              Level
             </div>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-3">
               {LEVELS.map((level) => {
@@ -222,14 +222,14 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                     }
                     className={`rounded-xl border px-2.5 py-2 text-left transition-all ${
                       selected
-                        ? "border-blue-400 bg-blue-50 text-blue-900 shadow-sm shadow-blue-500/10 ring-4 ring-blue-500/10 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-100"
+                        ? "border-transparent bg-[#1447E6] text-white shadow-lg shadow-[rgba(20,71,230,0.25)]"
                         : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
                     }`}
                   >
                     <span className="flex items-center gap-2 text-xs font-bold">
                       <span
                         className={`flex h-4 w-4 items-center justify-center rounded-full border-2 ${
-                          selected ? "border-blue-600 bg-blue-600" : "border-slate-300 bg-white dark:border-slate-500 dark:bg-slate-900"
+                          selected ? "border-white bg-white/20" : "border-slate-300 bg-white dark:border-slate-500 dark:bg-slate-900"
                         }`}
                       >
                         {selected && (
@@ -240,7 +240,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                       </span>
                       {level.label}
                     </span>
-                    <span className={`mt-0.5 block pl-6 text-[11px] ${selected ? "text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-slate-400"}`}>
+                    <span className={`mt-0.5 block pl-6 text-[11px] ${selected ? "text-blue-100" : "text-slate-500 dark:text-slate-400"}`}>
                       {level.hint}
                     </span>
                   </button>

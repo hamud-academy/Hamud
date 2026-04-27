@@ -23,8 +23,8 @@ export const defaultPaymentNumbers: PaymentNumber[] = [
   { id: "ibs", icon: "🇸🇴", label: "IBS Bank Account", value: "0106940300840012", note: "", iconSize: 22 },
   { id: "premier-teller", icon: "🇸🇴", label: "Premier Bank Teller ID", value: "749096", note: "", iconSize: 22 },
   { id: "premier-account", icon: "🇸🇴", label: "Premier Bank Account", value: "02-06-05-39-90-01", note: "", iconSize: 22 },
-  { id: "taaj", icon: "🌍", label: "Xawaalada TAAJ EVC+", value: "+252615070785", note: "", iconSize: 22 },
-  { id: "dahabshiil", icon: "🌍", label: "Xawaalada DAHABSHIIL E-DAHAB", value: "+252625070785", note: "", iconSize: 22 },
+  { id: "taaj", icon: "🌍", label: "TAAJ Transfer EVC+", value: "+252615070785", note: "", iconSize: 22 },
+  { id: "dahabshiil", icon: "🌍", label: "DAHABSHIIL Transfer eDahab", value: "+252625070785", note: "", iconSize: 22 },
 ];
 
 function str(value: unknown): string {

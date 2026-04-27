@@ -86,7 +86,7 @@ export default function ChangeTextsForm() {
           type="text"
           value={heroHeading}
           onChange={(e) => setHeroHeading(e.target.value)}
-          placeholder="Baro aqoon tayo leh, meel kasta oo aad joogto"
+          placeholder="Learn quality knowledge, wherever you are"
           className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
         />
       </div>
@@ -97,7 +97,7 @@ export default function ChangeTextsForm() {
           type="text"
           value={heroHeadingHighlight}
           onChange={(e) => setHeroHeadingHighlight(e.target.value)}
-          placeholder="meel kasta"
+          placeholder="wherever"
           className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
         />
       </div>
@@ -108,7 +108,7 @@ export default function ChangeTextsForm() {
           rows={3}
           value={heroDescription}
           onChange={(e) => setHeroDescription(e.target.value)}
-          placeholder="Ku biir kumanaan arday ah..."
+          placeholder="Join thousands of students..."
           className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
         />
       </div>
@@ -119,7 +119,7 @@ export default function ChangeTextsForm() {
           type="text"
           value={heroStudentCountText}
           onChange={(e) => setHeroStudentCountText(e.target.value)}
-          placeholder="Ku biir 10,000+ arday E-fircoon"
+          placeholder="Join 10,000+ active students"
           className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
         />
       </div>

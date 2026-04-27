@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/resend";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
+import { checkRateLimit, rateLimitKeyFromRequest } from "@/lib/rate-limit";
 
 const schema = z.object({
   courseId: z.string(),
@@ -16,11 +18,25 @@ const schema = z.object({
   paymentMethod: z.string().min(1),
   paymentRef: z.string().optional(),
   amount: z.number().min(0),
-  password: z.string().min(6),
+  password: z.string().refine(isStrongPassword, strongPasswordMessage()),
 });
 
 export async function POST(request: NextRequest) {
   try {
+    const orderLimit = checkRateLimit(rateLimitKeyFromRequest(request, "order"), {
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!orderLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(orderLimit.retryAfter) },
+        }
+      );
+    }
+
     const body = await request.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {

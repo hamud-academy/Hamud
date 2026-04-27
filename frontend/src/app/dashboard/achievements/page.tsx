@@ -3,6 +3,14 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+}
+
 export default async function AchievementsPage() {
   const session = await auth();
   if (!session?.user) {
@@ -120,12 +128,22 @@ export default async function AchievementsPage() {
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Course certificate</p>
                   <p className="font-semibold text-slate-900 mt-0.5 line-clamp-2">{e.course.title}</p>
-                  <Link
-                    href={`/dashboard/courses/${e.course.slug}`}
-                    className="inline-block mt-2 text-sm font-medium text-violet-600 hover:text-violet-700"
-                  >
-                    View course →
-                  </Link>
+                  <p className="text-xs text-slate-500 mt-1">Issued {formatDate(e.updatedAt)}</p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      href={`/api/certificates/${e.id}`}
+                      className="inline-flex items-center justify-center rounded-lg bg-amber-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-amber-600"
+                    >
+                      Download certificate
+                    </Link>
+                    <Link
+                      href={`/api/certificates/${e.id}?preview=1`}
+                      target="_blank"
+                      className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      Preview
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

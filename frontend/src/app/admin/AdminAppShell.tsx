@@ -42,7 +42,7 @@ export default function AdminAppShell({ children, siteName, logoUrl, userName, u
   const imgUnopt = userImage ? userImage.startsWith("http") && userImage.includes("localhost") : false;
 
   return (
-    <div className="min-h-screen flex bg-white dark:bg-slate-950">
+    <div className="dashboard-theme-scope min-h-screen flex bg-white dark:bg-slate-950">
       <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200 dark:border-slate-800 bg-[#F8F8F8] dark:bg-slate-900 px-3">
         <button
           type="button"
@@ -125,7 +125,9 @@ export default function AdminAppShell({ children, siteName, logoUrl, userName, u
         </div>
       </aside>
 
-      <main className="flex-1 min-h-screen min-w-0 w-full lg:ml-[260px] pt-14 lg:pt-0">{children}</main>
+      <main className="flex-1 min-h-screen min-w-0 w-full lg:ml-[260px] pt-14 lg:pt-0 dark:bg-slate-950">
+        {children}
+      </main>
     </div>
   );
 }

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
 import { getContactConfig } from "@/lib/contact-config";
+import { jsonWithPublicCache } from "@/lib/http-cache";
 
 export async function GET() {
   const config = await getContactConfig();
-  return NextResponse.json(config);
+  return jsonWithPublicCache(config);
 }

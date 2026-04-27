@@ -128,6 +128,7 @@ export default function AdminNav({ role, onNavigate }: { role?: string; onNaviga
                     { href: "/admin/system-config/fav-icon", label: "Fav icon" },
                     { href: "/admin/system-config/hero-photo", label: "Change Hero Photo" },
                     { href: "/admin/system-config/texts", label: "Change Texts" },
+                    { href: "/admin/system-config/payment-numbers", label: "Payment Numbers" },
                   ].map((child) => (
                     <Link
                       key={child.href}

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import CheckoutForm from "@/components/CheckoutForm";
+import { getPaymentNumbers } from "@/lib/payment-numbers";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -18,9 +19,10 @@ export default async function CheckoutPage({ params }: Props) {
   if (!course) notFound();
 
   const price = Number(course.price);
-  const [totalLessons, moduleCount] = await Promise.all([
+  const [totalLessons, moduleCount, paymentNumbers] = await Promise.all([
     prisma.lesson.count({ where: { module: { courseId: course.id } } }),
     prisma.module.count({ where: { courseId: course.id } }),
+    getPaymentNumbers(),
   ]);
 
   return (
@@ -43,22 +45,6 @@ export default async function CheckoutPage({ params }: Props) {
 
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Checkout</h1>
 
-          {/* Returning customer & Coupon - Hurbad style */}
-          <div className="flex flex-wrap gap-4 mb-6 text-sm text-gray-600">
-            <span>
-              Returning customer?{" "}
-              <Link href={`/login?callbackUrl=/checkout/${slug}`} className="text-emerald-600 hover:underline font-medium">
-                Click here to login
-              </Link>
-            </span>
-            <span>
-              Have a coupon?{" "}
-              <span className="text-emerald-600 hover:underline cursor-pointer font-medium">
-                Click here to enter your code
-              </span>
-            </span>
-          </div>
-
           {/* Parallel layout: BILLING DETAILS (left) | YOUR ORDER + PAYMENT (right) */}
           <CheckoutForm
             courseId={course.id}
@@ -69,6 +55,7 @@ export default async function CheckoutPage({ params }: Props) {
             courseCategory={course.category.name}
             moduleCount={moduleCount}
             totalLessons={totalLessons}
+            paymentNumbers={paymentNumbers}
           />
 
           <Link

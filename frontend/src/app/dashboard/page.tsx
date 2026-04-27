@@ -9,7 +9,7 @@ export default async function DashboardPage() {
 
   const enrollments = await prisma.enrollment.findMany({
     where: { userId: user.id },
-    select: { courseId: true },
+    select: { courseId: true, completed: true },
   });
   const enrolledCourseIds = enrollments.map((e) => e.courseId);
 
@@ -27,8 +27,8 @@ export default async function DashboardPage() {
 
   const firstName = session?.user?.name?.split(/\s+/)[0] ?? "Student";
   const hoursStudied = 42;
-  const completedCount = 12;
-  const certificatesCount = 3;
+  const completedCount = enrollments.filter((enrollment) => enrollment.completed).length;
+  const certificatesCount = completedCount;
 
   const weekDays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
   const activityData = [12, 18, 22, 48, 20, 15, 10];

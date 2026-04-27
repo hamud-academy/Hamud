@@ -10,7 +10,7 @@ async function getCourses() {
       category: { select: { name: true, slug: true } },
       _count: { select: { enrollments: true } },
     },
-    take: 6,
+    take: 4,
     orderBy: { createdAt: "desc" },
   });
 }
@@ -52,7 +52,7 @@ export default async function PopularCourses() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        <div className="grid grid-cols-2 min-[420px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {courses.map((course) => {
             const thumb = course.thumbnail
               ? (resolveMediaUrl(course.thumbnail) ?? course.thumbnail)

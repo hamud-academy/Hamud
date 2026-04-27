@@ -62,7 +62,9 @@ export async function POST(request: NextRequest) {
 
   let url: string;
   try {
-    ({ url } = await saveUploadedFile(relativePath, buffer, contentType));
+    ({ url } = await saveUploadedFile(relativePath, buffer, contentType, {
+      requirePublicUrl: true,
+    }));
   } catch (e) {
     console.error("Upload error:", e);
     return NextResponse.json({ error: uploadErrorMessage(e) }, { status: 500 });

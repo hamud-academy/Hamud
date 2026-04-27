@@ -88,7 +88,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const closeMobileNav = () => setMobileNavOpen(false);
 
   return (
-    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950">
+    <div className="dashboard-theme-scope min-h-screen flex bg-slate-50 dark:bg-slate-950">
       {mobileNavOpen && (
         <button
           type="button"

@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import { getContactConfig, defaultContactConfig, type ContactConfig } from "@/lib/contact-config";
-
-const CONFIG_PATH = path.join(process.cwd(), "data", "contact-config.json");
+import { getContactConfig, defaultContactConfig, saveContactConfig, type ContactConfig } from "@/lib/contact-config";
 
 export async function GET() {
   const session = await auth();
@@ -72,8 +68,7 @@ export async function PATCH(request: NextRequest) {
   }
   const config = normalizeConfig(body);
   try {
-    await mkdir(path.dirname(CONFIG_PATH), { recursive: true });
-    await writeFile(CONFIG_PATH, JSON.stringify(config, null, 2), "utf-8");
+    await saveContactConfig(config);
   } catch (e) {
     console.error("contact-config write error:", e);
     return NextResponse.json({ error: "Failed to save config" }, { status: 500 });

@@ -51,7 +51,7 @@ export default function CoursesGrid({ courses }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 min-[480px]:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6">
+    <div className="grid grid-cols-2 min-[420px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
       {courses.map((course) => (
         <Link
           key={course.id}

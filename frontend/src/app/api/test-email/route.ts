@@ -6,6 +6,10 @@ import { sendEmail } from "@/lib/resend";
  * Waxaa uu u diri fariin ADMIN_EMAIL. Haddii Resend shaqeeyo, "Last Used" Resend dashboard wuu u beddeli doonaa.
  */
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   const to = process.env.ADMIN_EMAIL;
   if (!to) {
     return NextResponse.json(

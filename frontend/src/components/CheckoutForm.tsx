@@ -2,6 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import type { PaymentNumber } from "@/lib/payment-numbers";
+import PasswordStrengthMeter from "@/components/PasswordStrengthMeter";
+import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
+
+const COUNTRY_NAMES =
+  "Afghanistan|Albania|Algeria|Andorra|Angola|Antigua and Barbuda|Argentina|Armenia|Australia|Austria|Azerbaijan|Bahamas|Bahrain|Bangladesh|Barbados|Belarus|Belgium|Belize|Benin|Bhutan|Bolivia|Bosnia and Herzegovina|Botswana|Brazil|Brunei|Bulgaria|Burkina Faso|Burundi|Cabo Verde|Cambodia|Cameroon|Canada|Central African Republic|Chad|Chile|China|Colombia|Comoros|Congo|Costa Rica|Croatia|Cuba|Cyprus|Czechia|Democratic Republic of the Congo|Denmark|Djibouti|Dominica|Dominican Republic|Ecuador|Egypt|El Salvador|Equatorial Guinea|Eritrea|Estonia|Eswatini|Ethiopia|Fiji|Finland|France|Gabon|Gambia|Georgia|Germany|Ghana|Greece|Grenada|Guatemala|Guinea|Guinea-Bissau|Guyana|Haiti|Honduras|Hungary|Iceland|India|Indonesia|Iran|Iraq|Ireland|Israel|Italy|Jamaica|Japan|Jordan|Kazakhstan|Kenya|Kiribati|Kuwait|Kyrgyzstan|Laos|Latvia|Lebanon|Lesotho|Liberia|Libya|Liechtenstein|Lithuania|Luxembourg|Madagascar|Malawi|Malaysia|Maldives|Mali|Malta|Marshall Islands|Mauritania|Mauritius|Mexico|Micronesia|Moldova|Monaco|Mongolia|Montenegro|Morocco|Mozambique|Myanmar|Namibia|Nauru|Nepal|Netherlands|New Zealand|Nicaragua|Niger|Nigeria|North Korea|North Macedonia|Norway|Oman|Pakistan|Palau|Palestine|Panama|Papua New Guinea|Paraguay|Peru|Philippines|Poland|Portugal|Qatar|Romania|Russia|Rwanda|Saint Kitts and Nevis|Saint Lucia|Saint Vincent and the Grenadines|Samoa|San Marino|Sao Tome and Principe|Saudi Arabia|Senegal|Serbia|Seychelles|Sierra Leone|Singapore|Slovakia|Slovenia|Solomon Islands|Somalia|South Africa|South Korea|South Sudan|Spain|Sri Lanka|Sudan|Suriname|Sweden|Switzerland|Syria|Taiwan|Tajikistan|Tanzania|Thailand|Timor-Leste|Togo|Tonga|Trinidad and Tobago|Tunisia|Turkey|Turkmenistan|Tuvalu|Uganda|Ukraine|United Arab Emirates|United Kingdom|United States|Uruguay|Uzbekistan|Vanuatu|Vatican City|Venezuela|Vietnam|Yemen|Zambia|Zimbabwe".split("|");
 
 interface Props {
   courseId: string;
@@ -12,6 +18,7 @@ interface Props {
   courseCategory: string;
   moduleCount: number;
   totalLessons: number;
+  paymentNumbers: PaymentNumber[];
 }
 
 export default function CheckoutForm({
@@ -23,6 +30,7 @@ export default function CheckoutForm({
   courseCategory,
   moduleCount,
   totalLessons,
+  paymentNumbers,
 }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -45,26 +53,23 @@ export default function CheckoutForm({
     saveCard: false,
     password: "",
     confirmPassword: "",
-    termsAccepted: false,
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [manualRegion, setManualRegion] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!form.termsAccepted) {
-      setError("Fadlan aqbal xeer-hoosaadka (terms and conditions).");
-      return;
-    }
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
       return;
     }
-    if (form.password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (!isStrongPassword(form.password)) {
+      setError(strongPasswordMessage());
       return;
     }
     const fullName = [form.firstNameMiddle.trim(), form.lastName.trim()].filter(Boolean).join(" ");
+    const region = form.region === "__manual__" ? manualRegion.trim() : form.region;
     setLoading(true);
     try {
       const res = await fetch("/api/orders", {
@@ -81,7 +86,7 @@ export default function CheckoutForm({
           password: form.password,
           country: form.country || undefined,
           address: form.address || undefined,
-          region: form.region || undefined,
+          region: region || undefined,
           postcode: form.postcode || undefined,
         }),
       });
@@ -152,10 +157,11 @@ export default function CheckoutForm({
                 onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
-                <option value="Somalia">Somalia</option>
-                <option value="Djibouti">Djibouti</option>
-                <option value="Ethiopia">Ethiopia</option>
-                <option value="Kenya">Kenya</option>
+                {COUNTRY_NAMES.map((country) => (
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -199,7 +205,17 @@ export default function CheckoutForm({
                 <option value="Shabeellaha Dhexe">Shabeellaha Dhexe</option>
                 <option value="Jubbada Hoose">Jubbada Hoose</option>
                 <option value="Jubbada Dhexe">Jubbada Dhexe</option>
+                <option value="__manual__">Other / Manual entry</option>
               </select>
+              {form.region === "__manual__" && (
+                <input
+                  type="text"
+                  value={manualRegion}
+                  onChange={(e) => setManualRegion(e.target.value)}
+                  className="mt-2 w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="Geli gobolkaaga"
+                />
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -262,11 +278,12 @@ export default function CheckoutForm({
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={6}
+                  minLength={8}
                   value={form.password}
                   onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                   className="w-full px-3 py-2.5 pr-10 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder="Password"
+                  placeholder="Strong password"
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -281,6 +298,7 @@ export default function CheckoutForm({
                   )}
                 </button>
               </div>
+              <PasswordStrengthMeter password={form.password} confirmPassword={form.confirmPassword} showMatch />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -374,7 +392,7 @@ export default function CheckoutForm({
                   onChange={() => setForm((f) => ({ ...f, paymentMethod: "Manual" }))}
                   className="mt-1 text-emerald-600"
                 />
-                <span className="font-medium text-gray-900">WaafiPay - EVC+, Zaad iyo Sahal</span>
+                <span className="text-sm font-bold tracking-tight text-gray-900">Manual payments</span>
               </label>
               <label className={`flex items-start gap-3 p-4 rounded-lg border-2 cursor-pointer ${form.paymentMethod === "Card" ? "border-emerald-500 bg-emerald-50/50" : "border-gray-200 hover:border-gray-300"}`}>
                 <input
@@ -390,26 +408,33 @@ export default function CheckoutForm({
             </div>
 
             {showManualPaymentDetails && (
-              <div className="mt-4 space-y-3">
+              <div className="mt-4 space-y-2">
                 <p className="text-sm font-semibold text-gray-900">Manual Payments</p>
-                <img src="/images/manual-payments.svg" alt="Manual Payments" className="w-full max-w-md rounded-lg border border-gray-200" />
-                <p className="text-gray-600 text-sm">Please enter your payment reference when you pay.</p>
-                <input
-                  type="text"
-                  value={form.paymentRef}
-                  onChange={(e) => setForm((f) => ({ ...f, paymentRef: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-gray-900"
-                  placeholder="Reference (e.g. 1234 or ABC123)"
-                />
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-3">
+                  <div className="space-y-2">
+                    {paymentNumbers.map((item) => (
+                      <div key={item.id} className="flex items-start gap-2 text-sm leading-6 text-slate-700">
+                        <span
+                          className="mt-0.5 flex w-7 shrink-0 items-center justify-center"
+                          style={{ fontSize: `${item.iconSize}px` }}
+                        >
+                          {item.icon}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="font-medium text-slate-700">{item.label}:</span>{" "}
+                          <span className="font-bold text-slate-800">{item.value}</span>
+                          {item.note ? <span className="text-slate-600"> {item.note}</span> : null}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
             {showCardForm && (
               <div className="mt-4 p-4 rounded-lg bg-gray-50 border border-gray-200 text-sm space-y-4">
                 <p className="font-semibold text-gray-900 text-base">Credit / Debit Card</p>
-                <div className="flex justify-center py-2">
-                  <img src="/images/manual-person.svg" alt="" className="w-20 h-28 object-contain" />
-                </div>
                 <div>
                   <label className="block text-gray-700 mb-1">Card number</label>
                   <input
@@ -460,20 +485,6 @@ export default function CheckoutForm({
           </div>
 
           <div className="space-y-4 pt-2">
-            <p className="text-sm text-gray-600">
-              Fadlan Iska Hubi inta Course/Diploma ee ku jirta saladaada inta aadan taaban HADA DALBO. Hadii qaar qaldan ay kaa soo raaceen ka saar X. Fadlan TOTAL ka iska Hubi Markale.
-            </p>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.termsAccepted}
-                onChange={(e) => setForm((f) => ({ ...f, termsAccepted: e.target.checked }))}
-                className="mt-1 rounded border-gray-300 text-emerald-600"
-              />
-              <span className="text-sm text-gray-700">
-                Fadlan Soo Akhri oo Aqbal &quot;Xeer Hoosaadka Hurbad&quot; terms and conditions.
-              </span>
-            </label>
             <button
               type="submit"
               disabled={loading}

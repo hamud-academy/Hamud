@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { jsonWithPublicCache } from "@/lib/http-cache";
 
 export async function GET() {
   try {
@@ -24,7 +25,7 @@ export async function GET() {
       userName: t.user.name ?? "Student",
       userImage: t.user.image ?? null,
     }));
-    return NextResponse.json(items);
+    return jsonWithPublicCache(items);
   } catch {
     return NextResponse.json([], { status: 200 });
   }

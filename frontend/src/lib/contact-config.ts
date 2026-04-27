@@ -1,7 +1,9 @@
 import { readFile } from "fs/promises";
 import path from "path";
+import { getAppConfig, saveAppConfig } from "@/lib/app-config-store";
 
 const CONFIG_PATH = path.join(process.cwd(), "data", "contact-config.json");
+const CONFIG_KEY = "contact-config";
 
 export type ContactPhone = { id: string; number: string; callbackLabel: string };
 export type ContactEmail = { id: string; address: string; messageLabel: string };
@@ -58,24 +60,37 @@ function parseList<T>(saved: unknown, defaultList: T[]): T[] {
 }
 
 export async function getContactConfig(): Promise<ContactConfig> {
+  const dbConfig = await getAppConfig<Partial<ContactConfig>>(CONFIG_KEY);
+  if (dbConfig) return normalizeContactConfig(dbConfig);
+
   try {
     const raw = await readFile(CONFIG_PATH, "utf-8");
     const data = JSON.parse(raw) as Partial<ContactConfig>;
-    return {
-      getInTouchTitle: data.getInTouchTitle ?? defaultContactConfig.getInTouchTitle,
-      getInTouchDescription: data.getInTouchDescription ?? defaultContactConfig.getInTouchDescription,
-      phones: parseList(data.phones, defaultContactConfig.phones) as ContactPhone[],
-      emails: parseList(data.emails, defaultContactConfig.emails) as ContactEmail[],
-      headOffices: parseList(data.headOffices, defaultContactConfig.headOffices) as ContactHeadOffice[],
-      socialLinks: parseList(data.socialLinks, defaultContactConfig.socialLinks) as ContactSocialLink[],
-      ourLocation: {
-        title: data.ourLocation?.title ?? defaultContactConfig.ourLocation.title,
-        description: data.ourLocation?.description ?? defaultContactConfig.ourLocation.description,
-        mapUrl: data.ourLocation?.mapUrl ?? defaultContactConfig.ourLocation.mapUrl,
-        mapEmbedCode: data.ourLocation?.mapEmbedCode ?? defaultContactConfig.ourLocation.mapEmbedCode ?? "",
-      },
-    };
+    return normalizeContactConfig(data);
   } catch {
     return defaultContactConfig;
   }
+}
+
+export function normalizeContactConfig(data: Partial<ContactConfig>): ContactConfig {
+  return {
+    getInTouchTitle: data.getInTouchTitle ?? defaultContactConfig.getInTouchTitle,
+    getInTouchDescription: data.getInTouchDescription ?? defaultContactConfig.getInTouchDescription,
+    phones: parseList(data.phones, defaultContactConfig.phones) as ContactPhone[],
+    emails: parseList(data.emails, defaultContactConfig.emails) as ContactEmail[],
+    headOffices: parseList(data.headOffices, defaultContactConfig.headOffices) as ContactHeadOffice[],
+    socialLinks: parseList(data.socialLinks, defaultContactConfig.socialLinks) as ContactSocialLink[],
+    ourLocation: {
+      title: data.ourLocation?.title ?? defaultContactConfig.ourLocation.title,
+      description: data.ourLocation?.description ?? defaultContactConfig.ourLocation.description,
+      mapUrl: data.ourLocation?.mapUrl ?? defaultContactConfig.ourLocation.mapUrl,
+      mapEmbedCode: data.ourLocation?.mapEmbedCode ?? defaultContactConfig.ourLocation.mapEmbedCode ?? "",
+    },
+  };
+}
+
+export async function saveContactConfig(config: ContactConfig): Promise<ContactConfig> {
+  const normalized = normalizeContactConfig(config);
+  await saveAppConfig(CONFIG_KEY, normalized);
+  return normalized;
 }

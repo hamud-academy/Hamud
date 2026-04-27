@@ -1,4 +1,6 @@
-/** Accepts http(s) URLs or same-site paths (e.g. /uploads/images/...). */
+import { getPublicAppOrigin } from "@/lib/resolve-media-url";
+
+/** Accepts public http(s) URLs for course thumbnail images. */
 export function normalizeCourseThumbnail(
   raw: string | undefined | null
 ): { ok: true; value: string | null } | { ok: false; message: string } {
@@ -11,17 +13,32 @@ export function normalizeCourseThumbnail(
   }
   try {
     const u = new URL(t);
+    const isLocal =
+      u.hostname === "localhost" ||
+      u.hostname === "127.0.0.1" ||
+      u.hostname === "::1";
     if (u.protocol === "http:" || u.protocol === "https:") {
-      return { ok: true, value: t };
+      if (isLocal) {
+        const origin = getPublicAppOrigin();
+        if (origin) {
+          return { ok: true, value: `${origin}${u.pathname}${u.search}${u.hash}` };
+        }
+        return { ok: false, message: "Course image must be a public URL, not localhost" };
+      }
+      return { ok: true, value: u.toString() };
     }
   } catch {
     /* relative path */
   }
   if (t.startsWith("/")) {
-    return { ok: true, value: t };
+    const origin = getPublicAppOrigin();
+    if (origin) {
+      return { ok: true, value: `${origin}${t}` };
+    }
+    return { ok: false, message: "Course image must be a public URL, not a local path" };
   }
   return {
     ok: false,
-    message: "Course image must be a valid http(s) URL or a path starting with /",
+    message: "Course image must be a valid public http(s) URL",
   };
 }

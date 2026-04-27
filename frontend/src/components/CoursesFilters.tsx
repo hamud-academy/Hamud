@@ -76,7 +76,6 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState(currentSearch ?? "");
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const params: Record<string, string> = {};
   searchParams.forEach((v, k) => {
@@ -99,207 +98,173 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
   const totalInCategories = categories.reduce((s, c) => s + c.coursesCount, 0);
 
   return (
-    <div className="lg:sticky lg:top-24 lg:self-start space-y-4">
-      <button
-        type="button"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden w-full flex items-center justify-between gap-3 px-5 py-4 rounded-2xl font-semibold text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700 shadow-sm shadow-slate-200/50 dark:shadow-slate-950/50 active:scale-[0.99] transition"
-      >
-        <span className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
-          </span>
-          Filters & search
-        </span>
-        <svg
-          className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${mobileOpen ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+    <section className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.45)] ring-1 ring-white/70 backdrop-blur-xl dark:border-slate-700 dark:bg-slate-900/90 dark:ring-slate-800/80 sm:p-4">
+      <div className="pointer-events-none absolute -right-20 -top-24 h-56 w-56 rounded-full bg-blue-500/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-28 left-10 h-52 w-52 rounded-full bg-indigo-500/10 blur-3xl" />
 
-      <div
-        className={`${mobileOpen ? "block" : "hidden lg:block"} rounded-3xl border border-slate-200/80 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-slate-950/40 ring-1 ring-slate-900/5 dark:ring-slate-100/5 overflow-hidden`}
-      >
-        <div className="p-4 sm:p-5 space-y-6">
-          <form onSubmit={handleSearch} className="space-y-2">
-            <label htmlFor="course-search" className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">
-              Search
+      <div className="relative space-y-3">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700 dark:border-blue-900/70 dark:bg-blue-950/40 dark:text-blue-300">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414A1 1 0 0014 14.414V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              Filters
+            </div>
+          </div>
+
+          <form onSubmit={handleSearch} className="flex w-full flex-col gap-2 sm:flex-row xl:max-w-xl">
+            <label htmlFor="course-search" className="sr-only">
+              Search courses
             </label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-1 min-w-0 group">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </span>
-                <input
-                  id="course-search"
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search courses…"
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200/90 dark:border-slate-600 bg-slate-50/80 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder-slate-500 text-sm font-medium outline-none transition focus:bg-white dark:focus:bg-slate-800 focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={isPending}
-                className="shrink-0 px-6 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 hover:shadow-blue-500/35 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-60 transition"
-              >
-                {isPending ? "…" : "Search"}
-              </button>
+            <div className="group relative min-w-0 flex-1">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-500">
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+              <input
+                id="course-search"
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search courses..."
+                className="h-10 w-full rounded-xl border border-slate-200/90 bg-slate-50/90 py-2 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-800"
+              />
             </div>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition hover:-translate-y-0.5 hover:from-blue-500 hover:to-indigo-500 hover:shadow-blue-500/35 disabled:translate-y-0 disabled:opacity-60"
+            >
+              {isPending ? "..." : "Search"}
+            </button>
           </form>
+        </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+          <div className="min-w-0 space-y-2">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </span>
+              Categories
+            </div>
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:thin]">
+              <button
+                type="button"
+                onClick={() => startTransition(() => router.push(buildUrl(params, { category: null, page: null })))}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                  !currentCategory
+                    ? "border-transparent bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                    : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
+                }`}
+              >
+                <span className={`flex h-6 w-6 items-center justify-center rounded-lg ${!currentCategory ? "bg-white/15" : "bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-300"}`}>
+                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </span>
-                Categories
-              </h3>
-            </div>
-            <ul className="space-y-1.5 max-h-[min(52vh,22rem)] overflow-y-auto pr-1 -mr-1">
-              <li>
-                <button
-                  type="button"
-                  onClick={() => startTransition(() => router.push(buildUrl(params, { category: null, page: null })))}
-                  className={`w-full text-left flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold transition-all ${
-                    !currentCategory
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-white/20"
-                      : "bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm"
-                  }`}
-                >
-                      <span className={`flex h-9 w-9 items-center justify-center rounded-xl shrink-0 ${!currentCategory ? "bg-white/15" : "bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-600 text-slate-500 dark:text-slate-300"}`}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                  </span>
-                  <span className="flex-1 min-w-0 truncate">Dhammaan</span>
-                  <span
-                    className={`tabular-nums text-xs font-bold px-2.5 py-1 rounded-lg ${
-                      !currentCategory ? "bg-white/20 text-white" : "bg-slate-200/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                    }`}
-                  >
-                    {totalInCategories}
-                  </span>
-                </button>
-              </li>
+                Dhammaan
+                <span className={`rounded-md px-1.5 py-0.5 text-[11px] tabular-nums ${!currentCategory ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300"}`}>
+                  {totalInCategories}
+                </span>
+              </button>
+
               {categories.map((cat) => {
                 const active = currentCategory === cat.slug;
                 return (
-                  <li key={cat.id}>
-                    <button
-                      type="button"
-                      onClick={() => startTransition(() => router.push(buildUrl(params, { category: cat.slug, page: null })))}
-                      className={`w-full text-left flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-semibold transition-all ${
-                        active
-                          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/25 ring-1 ring-white/20"
-                          : "bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 border border-slate-100 dark:border-slate-700 hover:border-slate-200 dark:hover:border-slate-600 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm"
-                      }`}
-                    >
-                      <span
-                        className={`flex h-9 w-9 items-center justify-center rounded-xl shrink-0 ${
-                          active ? "bg-white/15 text-white" : "bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-600"
-                        }`}
-                      >
-                        {getCategoryIcon(cat.slug, active)}
-                      </span>
-                      <span className="flex-1 min-w-0 truncate">{cat.name}</span>
-                      <span
-                        className={`tabular-nums text-xs font-bold px-2.5 py-1 rounded-lg ${
-                          active ? "bg-white/20 text-white" : "bg-slate-200/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
-                        }`}
-                      >
-                        {cat.coursesCount}
-                      </span>
-                    </button>
-                  </li>
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => startTransition(() => router.push(buildUrl(params, { category: cat.slug, page: null })))}
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                      active
+                        ? "border-transparent bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
+                        : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
+                    }`}
+                  >
+                    <span className={`flex h-6 w-6 items-center justify-center rounded-lg ${active ? "bg-white/15" : "bg-slate-100 dark:bg-slate-900"}`}>
+                      {getCategoryIcon(cat.slug, active)}
+                    </span>
+                    {cat.name}
+                    <span className={`rounded-md px-1.5 py-0.5 text-[11px] tabular-nums ${active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300"}`}>
+                      {cat.coursesCount}
+                    </span>
+                  </button>
                 );
               })}
-            </ul>
+            </div>
           </div>
 
-          <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
-
-          <div className="space-y-3">
-            <h3 className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400 flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="space-y-2 lg:w-80">
+            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+              <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </span>
               Heerka
-            </h3>
-            <ul className="space-y-2">
-              {LEVELS.map((l) => {
-                const selected = currentLevel === l.value;
+            </div>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 lg:grid-cols-3">
+              {LEVELS.map((level) => {
+                const selected = currentLevel === level.value;
                 return (
-                  <li key={l.value}>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        startTransition(() =>
-                          router.push(buildUrl(params, { level: selected ? null : l.value, page: null }))
-                        )
-                      }
-                      className={`w-full text-left rounded-2xl border px-3.5 py-3 transition-all flex items-center gap-3 ${
-                        selected
-                          ? "border-blue-400/80 dark:border-blue-600 bg-gradient-to-br from-blue-50 to-indigo-50/80 dark:from-blue-950/40 dark:to-indigo-950/30 shadow-sm shadow-blue-500/10 ring-2 ring-blue-500/20 dark:ring-blue-500/30"
-                          : "border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-600 hover:shadow-sm"
-                      }`}
-                    >
+                  <button
+                    key={level.value}
+                    type="button"
+                    onClick={() =>
+                      startTransition(() =>
+                        router.push(buildUrl(params, { level: selected ? null : level.value, page: null }))
+                      )
+                    }
+                    className={`rounded-xl border px-2.5 py-2 text-left transition-all ${
+                      selected
+                        ? "border-blue-400 bg-blue-50 text-blue-900 shadow-sm shadow-blue-500/10 ring-4 ring-blue-500/10 dark:border-blue-700 dark:bg-blue-950/40 dark:text-blue-100"
+                        : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 text-xs font-bold">
                       <span
-                        className={`flex h-5 w-5 rounded-full border-2 shrink-0 items-center justify-center transition-colors ${
-                          selected ? "border-blue-600 bg-blue-600" : "border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-900"
+                        className={`flex h-4 w-4 items-center justify-center rounded-full border-2 ${
+                          selected ? "border-blue-600 bg-blue-600" : "border-slate-300 bg-white dark:border-slate-500 dark:bg-slate-900"
                         }`}
                       >
                         {selected && (
-                          <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="h-2.5 w-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                           </svg>
                         )}
                       </span>
-                      <span className="flex-1 min-w-0">
-                        <span className={`block text-sm font-semibold ${selected ? "text-blue-900 dark:text-blue-100" : "text-slate-800 dark:text-slate-200"}`}>
-                          {l.label}
-                        </span>
-                        <span className={`block text-xs mt-0.5 ${selected ? "text-blue-700/80 dark:text-blue-300/90" : "text-slate-500 dark:text-slate-400"}`}>
-                          {l.hint}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
+                      {level.label}
+                    </span>
+                    <span className={`mt-0.5 block pl-6 text-[11px] ${selected ? "text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-slate-400"}`}>
+                      {level.hint}
+                    </span>
+                  </button>
                 );
               })}
-            </ul>
+            </div>
           </div>
+        </div>
 
-          {hasFilters && (
+        {hasFilters && (
+          <div className="flex justify-end border-t border-slate-100 pt-3 dark:border-slate-800">
             <button
               type="button"
               onClick={clearFilters}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800 transition"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:border-blue-800 dark:hover:text-blue-300"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
               Clear all filters
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 }

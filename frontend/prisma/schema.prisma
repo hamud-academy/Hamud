@@ -26,6 +26,8 @@ model User {
   lessonCompletions LessonCompletion[]
   testimonies       Testimony[]
 
+  @@index([role])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -46,6 +48,7 @@ model Category {
 
   courses Course[]
 
+  @@index([name])
   @@map("categories")
 }
 
@@ -74,6 +77,10 @@ model Course {
   enrollments Enrollment[]
   orders      Order[]
 
+  @@index([published, createdAt])
+  @@index([published, level, createdAt])
+  @@index([categoryId, published, createdAt])
+  @@index([instructorId, createdAt])
   @@map("courses")
 }
 
@@ -94,6 +101,7 @@ model Module {
   course   Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   lessons  Lesson[]
 
+  @@index([courseId, order])
   @@map("modules")
 }
 
@@ -112,6 +120,7 @@ model Lesson {
   completions LessonCompletion[]
   lessonQuiz  LessonQuiz?
 
+  @@index([moduleId, order])
   @@map("lessons")
 }
 
@@ -134,6 +143,7 @@ model LessonQuizQuestion {
   quiz      LessonQuiz         @relation(fields: [quizId], references: [id], onDelete: Cascade)
   options   LessonQuizOption[]
 
+  @@index([quizId, order])
   @@map("lesson_quiz_questions")
 }
 
@@ -145,6 +155,7 @@ model LessonQuizOption {
   isCorrect  Boolean            @default(false) @map("is_correct")
   question   LessonQuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
+  @@index([questionId, order])
   @@map("lesson_quiz_options")
 }
 
@@ -159,6 +170,8 @@ model LessonCompletion {
   lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
 
   @@unique([userId, lessonId])
+  @@index([userId, completedAt])
+  @@index([lessonId, completedAt])
   @@map("lesson_completions")
 }
 
@@ -177,6 +190,10 @@ model Enrollment {
   course Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId])
+  @@index([userId, enrolledAt])
+  @@index([courseId, enrolledAt])
+  @@index([completed, updatedAt])
+  @@index([enrolledAt])
   @@map("enrollments")
 }
 
@@ -203,6 +220,11 @@ model Order {
   courseId String @map("course_id")
   course   Course @relation(fields: [courseId], references: [id], onDelete: Restrict)
 
+  @@index([status, createdAt])
+  @@index([status, paidAt])
+  @@index([courseId, status])
+  @@index([userId])
+  @@index([email])
   @@map("orders")
 }
 
@@ -221,6 +243,8 @@ model Testimony {
   userId String @map("user_id")
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, createdAt])
+  @@index([createdAt])
   @@map("testimonies")
 }
 
@@ -232,4 +256,13 @@ model SiteSettings {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("site_settings")
+}
+
+// ============ APP CONFIGS (dynamic JSON configs) ============
+model AppConfig {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("app_configs")
 }

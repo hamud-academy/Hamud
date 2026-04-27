@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { jsonWithPublicCache } from "@/lib/http-cache";
 
 export async function GET() {
   try {
@@ -7,7 +8,7 @@ export async function GET() {
       orderBy: { name: "asc" },
       include: { _count: { select: { courses: true } } },
     });
-    return NextResponse.json(
+    return jsonWithPublicCache(
       categories.map((c) => ({
         id: c.id,
         name: c.name,

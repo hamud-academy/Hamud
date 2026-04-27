@@ -34,7 +34,7 @@ export default function WhyChoose() {
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-10 sm:mb-14">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
-            Why choose Goltech E-Learning?
+            Why choose us
           </h2>
           <p className="text-slate-600 dark:text-slate-300 mt-3 max-w-2xl mx-auto text-sm sm:text-base">
             We provide quality education that helps you achieve your goals.

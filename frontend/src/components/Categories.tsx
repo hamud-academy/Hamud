@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 const slugToIcon: Record<string, { icon: React.ReactNode; color: string }> = {
@@ -60,11 +61,15 @@ function getIcon(slug: string) {
   return slugToIcon[key] ?? defaultIcon;
 }
 
-export default async function Categories() {
-  const categories = await prisma.category.findMany({
+const getCategories = unstable_cache(async () => {
+  return prisma.category.findMany({
     orderBy: { name: "asc" },
     include: { _count: { select: { courses: true } } },
   });
+}, ["home-categories"], { revalidate: 300 });
+
+export default async function Categories() {
+  const categories = await getCategories();
 
   return (
     <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-slate-50/50 dark:bg-slate-900/40">
@@ -97,7 +102,7 @@ export default async function Categories() {
                   {cat.name}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                  {count}+ Koorso
+                  {count}+ Courses
                 </p>
               </Link>
             );
@@ -124,7 +129,7 @@ export default async function Categories() {
                     {icon}
                   </div>
                   <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">{cat.name}</h3>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">0+ Koorso</p>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">0+ Courses</p>
                 </Link>
               );
             })}

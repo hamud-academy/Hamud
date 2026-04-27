@@ -40,7 +40,7 @@ export default async function MyCoursesPage() {
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-slate-900">My Courses</h1>
         <p className="text-slate-600 text-sm mt-0.5">
-          Koorsoyinka aad diiwaangalay oo aad baranayso.
+          Courses you are enrolled in and currently learning.
         </p>
       </div>
 

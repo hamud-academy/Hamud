@@ -18,7 +18,7 @@ export async function saveUploadedFile(
   relativePath: PublicUploadPath,
   data: Buffer,
   contentType: string,
-  options: UploadOptions = {}
+  options: UploadOptions = { requirePublicUrl: true }
 ): Promise<{ url: string }> {
   const normalized = relativePath.replace(/^\/+/, "");
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
@@ -34,14 +34,14 @@ export async function saveUploadedFile(
 
   if (process.env.VERCEL) {
     throw new Error(
-      "BLOB_READ_WRITE_TOKEN ma aha mid sax (ama ma jiro). Vercel → firtech-elearning → Settings → Environment Variables: ku dar token-ka Blob (Production), ka dib Redeploy."
+      "BLOB_READ_WRITE_TOKEN is invalid or missing. In Vercel, go to firtech-elearning > Settings > Environment Variables, add the Blob token for Production, then redeploy."
     );
   }
 
   const publicOrigin = getPublicAppOrigin();
-  if (options.requirePublicUrl && !publicOrigin) {
+  if (options.requirePublicUrl !== false && !publicOrigin) {
     throw new Error(
-      "Sawirka lama kaydin karo sida public URL. Ku dar BLOB_READ_WRITE_TOKEN (Vercel Blob public store) ama NEXT_PUBLIC_APP_URL oo public domain ah, kadib isku day mar kale."
+      "File cannot be saved with a public URL. Add BLOB_READ_WRITE_TOKEN for Vercel Blob or set NEXT_PUBLIC_APP_URL to your public domain, then try again."
     );
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getLandingConfig, defaultLandingConfig, saveLandingConfig } from "@/lib/landing-config";
+import { normalizePublicMediaUrl } from "@/lib/resolve-media-url";
 
 export async function GET() {
   const session = await auth();
@@ -25,7 +26,13 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   const current = await getLandingConfig();
-  if (body.heroImageUrl !== undefined) current.heroImageUrl = body.heroImageUrl == null ? "" : String(body.heroImageUrl).trim();
+  if (body.heroImageUrl !== undefined) {
+    const heroImage = normalizePublicMediaUrl(body.heroImageUrl, "Hero image URL");
+    if (!heroImage.ok) {
+      return NextResponse.json({ error: heroImage.message }, { status: 400 });
+    }
+    current.heroImageUrl = heroImage.value ?? "";
+  }
   if (body.heroTagline !== undefined) current.heroTagline = body.heroTagline == null ? "" : String(body.heroTagline).trim();
   if (body.heroHeading !== undefined) current.heroHeading = body.heroHeading == null ? "" : String(body.heroHeading).trim();
   if (body.heroHeadingHighlight !== undefined) current.heroHeadingHighlight = body.heroHeadingHighlight == null ? "" : String(body.heroHeadingHighlight).trim();

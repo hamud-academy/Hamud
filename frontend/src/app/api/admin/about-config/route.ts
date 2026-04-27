@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { getAboutConfig, defaultAboutConfig, saveAboutConfig, type AboutConfig, type AboutFeature } from "@/lib/about-config";
+import { normalizePublicMediaUrl } from "@/lib/resolve-media-url";
 
 function str(v: unknown): string {
   return v == null ? "" : String(v).trim();
 }
 
-function normalizeConfig(body: unknown): AboutConfig {
+function normalizeConfig(body: unknown): { ok: true; config: AboutConfig } | { ok: false; error: string } {
   const d = defaultAboutConfig;
-  if (!body || typeof body !== "object") return d;
+  if (!body || typeof body !== "object") return { ok: true, config: d };
   const b = body as Record<string, unknown>;
   const featuresRaw = Array.isArray(b.features) ? b.features : d.features;
   const features: AboutFeature[] = featuresRaw.slice(0, 3).map((f: unknown) => {
@@ -18,11 +19,16 @@ function normalizeConfig(body: unknown): AboutConfig {
       description: str(o.description) || "",
     };
   });
-  return {
+  const heroBackgroundImageUrl = normalizePublicMediaUrl(b.heroBackgroundImageUrl as string | null | undefined, "About hero image URL");
+  if (!heroBackgroundImageUrl.ok) {
+    return { ok: false, error: heroBackgroundImageUrl.message };
+  }
+
+  return { ok: true, config: {
     heroTagline: str(b.heroTagline) || d.heroTagline,
     heroHeading: str(b.heroHeading) || d.heroHeading,
     heroDescription: str(b.heroDescription) || d.heroDescription,
-    heroBackgroundImageUrl: str(b.heroBackgroundImageUrl) ?? d.heroBackgroundImageUrl,
+    heroBackgroundImageUrl: heroBackgroundImageUrl.value ?? d.heroBackgroundImageUrl,
     missionTitle: str(b.missionTitle) || d.missionTitle,
     missionText: str(b.missionText) || d.missionText,
     visionTitle: str(b.visionTitle) || d.visionTitle,
@@ -32,7 +38,7 @@ function normalizeConfig(body: unknown): AboutConfig {
     features: features.length ? features : d.features,
     ctaLabel: str(b.ctaLabel) || d.ctaLabel,
     ctaHref: str(b.ctaHref) || d.ctaHref,
-  };
+  } };
 }
 
 export async function GET() {
@@ -57,7 +63,11 @@ export async function PATCH(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const config = normalizeConfig(body);
+  const normalized = normalizeConfig(body);
+  if (!normalized.ok) {
+    return NextResponse.json({ error: normalized.error }, { status: 400 });
+  }
+  const config = normalized.config;
   try {
     await saveAboutConfig(config);
   } catch (e) {

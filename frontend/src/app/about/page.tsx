@@ -9,7 +9,7 @@ export default async function AboutPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-[#f5f5f7]">
+      <main className="min-h-screen bg-[#f5f5f7] dark:bg-slate-950">
         {/* Hero Section */}
         <section
           className="relative min-h-[420px] sm:min-h-[480px] flex items-center overflow-hidden pt-16 bg-[#1e3a3a] bg-cover bg-center"
@@ -53,7 +53,7 @@ export default async function AboutPage() {
         {/* Mission & Vision */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10 sm:py-14 -mt-6 sm:-mt-8 relative z-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-            <article className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg shadow-slate-200/50 border border-slate-100">
+            <article className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 shadow-lg shadow-slate-200/50 dark:shadow-black/30 border border-slate-100 dark:border-slate-800">
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -61,14 +61,14 @@ export default async function AboutPage() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">{config.missionTitle}</h2>
-                  <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white mb-2">{config.missionTitle}</h2>
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm sm:text-base">
                     {config.missionText}
                   </p>
                 </div>
               </div>
             </article>
-            <article className="bg-white rounded-2xl p-6 sm:p-8 shadow-lg shadow-slate-200/50 border border-slate-100">
+            <article className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 shadow-lg shadow-slate-200/50 dark:shadow-black/30 border border-slate-100 dark:border-slate-800">
               <div className="flex gap-4">
                 <div className="flex-shrink-0 w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
                   <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -76,8 +76,8 @@ export default async function AboutPage() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 mb-2">{config.visionTitle}</h2>
-                  <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-white mb-2">{config.visionTitle}</h2>
+                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm sm:text-base">
                     {config.visionText}
                   </p>
                 </div>
@@ -88,10 +88,10 @@ export default async function AboutPage() {
 
         {/* Why Choose Us */}
         <section className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 pb-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 text-center mb-3">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white text-center mb-3">
             {config.whyChooseUsTitle}
           </h2>
-          <p className="text-slate-600 text-center max-w-2xl mx-auto mb-10 sm:mb-14 text-sm sm:text-base">
+          <p className="text-slate-600 dark:text-slate-300 text-center max-w-2xl mx-auto mb-10 sm:mb-14 text-sm sm:text-base">
             {config.whyChooseUsIntro}
           </p>
 
@@ -99,7 +99,7 @@ export default async function AboutPage() {
             {config.features.map((feature, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl p-6 sm:p-8 shadow-md border border-slate-100 text-center flex flex-col items-center"
+                className="bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 shadow-md dark:shadow-black/30 border border-slate-100 dark:border-slate-800 text-center flex flex-col items-center"
               >
                 <div className="w-14 h-14 rounded-full bg-blue-500 flex items-center justify-center mb-4 flex-shrink-0">
                   {i === 0 && (
@@ -118,8 +118,8 @@ export default async function AboutPage() {
                     </svg>
                   )}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-2">{feature.title}</h3>
-                <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white mb-2">{feature.title}</h3>
+                <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
                   {feature.description}
                 </p>
               </div>

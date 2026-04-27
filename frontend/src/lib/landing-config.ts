@@ -9,10 +9,10 @@ const CONFIG_KEY = "landing-config";
 export const defaultLandingConfig = {
   heroImageUrl: "",
   heroTagline: "THE FUTURE OF SOMALI E-LEARNING",
-  heroHeading: "Baro aqoon tayo leh, meel kasta oo aad joogto",
-  heroHeadingHighlight: "meel kasta",
-  heroDescription: "Ku biir kumanaan arday ah oo baranaya xirfadihii ugu dambeeyay. Dhiso mustaqbalkaaga maanta.",
-  heroStudentCountText: "Ku biir 10,000+ arday E-fircoon",
+  heroHeading: "Learn quality knowledge, wherever you are",
+  heroHeadingHighlight: "wherever",
+  heroDescription: "Join thousands of students learning the latest skills. Build your future today.",
+  heroStudentCountText: "Join 10,000+ active students",
 };
 
 export type LandingConfig = typeof defaultLandingConfig;

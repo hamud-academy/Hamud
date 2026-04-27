@@ -31,13 +31,62 @@ function getAppOrigin(): string {
   return getPublicAppOrigin() ?? "http://localhost:3000";
 }
 
+export function isLocalUrl(url: URL): boolean {
+  return isLocalHostname(url.hostname);
+}
+
+export function normalizePublicMediaUrl(
+  raw: string | null | undefined,
+  fieldName = "Media URL"
+): { ok: true; value: string | null } | { ok: false; message: string } {
+  if (raw == null || String(raw).trim() === "") return { ok: true, value: null };
+  const trimmed = String(raw).trim();
+  const publicOrigin = getPublicAppOrigin();
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    if (!publicOrigin) {
+      return { ok: false, message: `${fieldName} must be a public URL. Set NEXT_PUBLIC_APP_URL or upload to Vercel Blob.` };
+    }
+    return { ok: true, value: `${publicOrigin}${trimmed}` };
+  }
+
+  if (/^uploads\//i.test(trimmed)) {
+    if (!publicOrigin) {
+      return { ok: false, message: `${fieldName} must be a public URL. Set NEXT_PUBLIC_APP_URL or upload to Vercel Blob.` };
+    }
+    return { ok: true, value: `${publicOrigin}/${trimmed}` };
+  }
+
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return { ok: false, message: `${fieldName} must be a valid public http(s) URL.` };
+    }
+    if (isLocalHostname(url.hostname)) {
+      if (!publicOrigin) {
+        return { ok: false, message: `${fieldName} cannot use localhost. Set NEXT_PUBLIC_APP_URL or upload to Vercel Blob.` };
+      }
+      return { ok: true, value: `${publicOrigin}${url.pathname}${url.search}${url.hash}` };
+    }
+    return { ok: true, value: url.toString() };
+  } catch {
+    return { ok: false, message: `${fieldName} must be a valid public http(s) URL.` };
+  }
+}
+
 export function resolveMediaUrl(url: string | null | undefined): string | null {
   if (url == null || url === "") return null;
   const trimmed = url.trim();
   if (!trimmed) return null;
 
   if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
-    return trimmed;
+    const origin = getPublicAppOrigin();
+    return origin ? `${origin}${trimmed}` : trimmed;
+  }
+
+  if (/^uploads\//i.test(trimmed)) {
+    const origin = getPublicAppOrigin();
+    return origin ? `${origin}/${trimmed}` : `/${trimmed}`;
   }
 
   const origin = getAppOrigin();

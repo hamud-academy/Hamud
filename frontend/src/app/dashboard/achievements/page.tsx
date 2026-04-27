@@ -50,7 +50,7 @@ export default async function AchievementsPage() {
       </div>
 
       <h1 className="text-2xl font-bold text-slate-900 mb-1">Achievements</h1>
-      <p className="text-slate-600 text-sm mb-8">Koorsoyinka aad dhameysatay iyo shahaadoyinka aad heshay.</p>
+      <p className="text-slate-600 text-sm mb-8">Completed courses and certificates you have earned.</p>
 
       {/* Completed courses */}
       <section className="mb-10">

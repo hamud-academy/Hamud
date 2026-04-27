@@ -47,7 +47,7 @@ export default function Testimonials() {
           Testimonials from our Students
         </h2>
         <p className="text-slate-600 text-center text-sm sm:text-base max-w-xl mx-auto mb-10 sm:mb-12">
-          Waxa ardaydeena naga sheegay faa&apos;iideyska ay ka helaan platform-ka.
+          See what our students say about the value they get from our platform.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">

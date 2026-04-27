@@ -114,7 +114,7 @@ export default function CheckoutForm({
         <div className="w-full md:flex-1 md:min-w-0 order-1 bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="px-5 sm:px-6 lg:px-8 py-5 border-b border-gray-100">
             <h2 className="text-lg font-bold text-gray-900 tracking-tight">BILLING DETAILS</h2>
-            <p className="text-sm text-gray-500 mt-0.5">* Waa lagu talagalay in la buuxiyo</p>
+            <p className="text-sm text-gray-500 mt-0.5">* Required fields</p>
           </div>
           <div className="p-5 sm:p-6 lg:p-8 space-y-4">
             {error && (
@@ -124,7 +124,7 @@ export default function CheckoutForm({
             )}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Magacaaga Koowaad iyo Magaca aabahaa *
+                First and middle name *
               </label>
               <input
                 type="text"
@@ -132,12 +132,12 @@ export default function CheckoutForm({
                 value={form.firstNameMiddle}
                 onChange={(e) => setForm((f) => ({ ...f, firstNameMiddle: e.target.value }))}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Halkaan Gali Magacaaga iyo Magaca Aabahaa"
+                placeholder="Enter your first and middle name"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Magacaaga Awowgaa *
+                Last name *
               </label>
               <input
                 type="text"
@@ -145,12 +145,12 @@ export default function CheckoutForm({
                 value={form.lastName}
                 onChange={(e) => setForm((f) => ({ ...f, lastName: e.target.value }))}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Halkaan Gali Magaca Awowgaa"
+                placeholder="Enter your last name"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Wadanka *
+                Country *
               </label>
               <select
                 value={form.country}
@@ -166,26 +166,26 @@ export default function CheckoutForm({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Wadada Aad Dagantahay
+                Street address
               </label>
               <input
                 type="text"
                 value={form.address}
                 onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="Sida Wadada Sodonika oo kale"
+                placeholder="Example: Main Street"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Gobolka
+                Region
               </label>
               <select
                 value={form.region}
                 onChange={(e) => setForm((f) => ({ ...f, region: e.target.value }))}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               >
-                <option value="">Sida Maroodi Jeex ama Banaadir</option>
+                <option value="">Example: Maroodi Jeex or Banaadir</option>
                 <option value="Maroodi Jeex">Maroodi Jeex</option>
                 <option value="Banaadir">Banaadir</option>
                 <option value="Galguduud">Galguduud</option>
@@ -213,20 +213,20 @@ export default function CheckoutForm({
                   value={manualRegion}
                   onChange={(e) => setManualRegion(e.target.value)}
                   className="mt-2 w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                  placeholder="Geli gobolkaaga"
+                  placeholder="Enter your region"
                 />
               )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Postcode / ZIP (Furaha wadanka sida 252)
+                Postcode / ZIP
               </label>
               <input
                 type="text"
                 value={form.postcode}
                 onChange={(e) => setForm((f) => ({ ...f, postcode: e.target.value }))}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="ZIP CODE AMA FURAHA WADANKA SIDA 252, 251 ama 254"
+                placeholder="ZIP code or country code, e.g. 252, 251, or 254"
               />
             </div>
             <div>
@@ -239,12 +239,12 @@ export default function CheckoutForm({
                 value={form.phone}
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                 className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="WhatsAPP Numberkaaga Gali Halkaan"
+                placeholder="Enter your WhatsApp number"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email address (Gmail kaaga) *
+                Email address *
               </label>
               <input
                 type="email"
@@ -490,7 +490,7 @@ export default function CheckoutForm({
               disabled={loading}
               className="w-full py-3.5 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-50 transition text-base"
             >
-              {loading ? "Processing..." : "HADA DALBO"}
+              {loading ? "Processing..." : "Place order"}
             </button>
           </div>
         </div>

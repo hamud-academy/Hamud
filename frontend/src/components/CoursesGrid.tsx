@@ -44,8 +44,8 @@ export default function CoursesGrid({ courses }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">Koorsooyin ma helin.</p>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">Isku day filter kale ama raadinta.</p>
+        <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">No courses found.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">Try another filter or search term.</p>
       </div>
     );
   }
@@ -99,8 +99,8 @@ export default function CoursesGrid({ courses }: Props) {
                   </span>
                 )}
               </div>
-              <span className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-semibold shadow-md shadow-blue-500/25 group-hover:shadow-lg group-hover:shadow-blue-500/30 transition-shadow">
-                Daawo
+              <span className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-[#1447E6] text-white text-sm font-semibold shadow-md shadow-[rgba(20,71,230,0.25)] group-hover:bg-[#0F35AD] group-hover:shadow-lg group-hover:shadow-[rgba(20,71,230,0.3)] transition">
+                View
                 <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                 </svg>

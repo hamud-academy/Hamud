@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { jsonWithPublicCache } from "@/lib/http-cache";
 
 export async function GET(request: NextRequest) {
   try {
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
       students: c._count.enrollments,
     }));
 
-    return NextResponse.json({
+    return jsonWithPublicCache({
       courses: formatted,
       pagination: {
         page,
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
         total,
         totalPages: Math.ceil(total / limit),
       },
-    });
+    }, { browserMaxAge: 30, edgeMaxAge: 120, staleWhileRevalidate: 600 });
   } catch (error) {
     console.error("Courses API error:", error);
     return NextResponse.json(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/resend";
+import { getPublicAppOrigin } from "@/lib/resolve-media-url";
 
 export async function PATCH(
   _request: NextRequest,
@@ -76,7 +77,7 @@ export async function PATCH(
     },
   });
 
-  const baseUrl = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
+  const baseUrl = getPublicAppOrigin();
   const courseSlug = order.course.slug ?? order.courseId;
   const emailResult = await sendEmail({
     to: order.email,
@@ -84,7 +85,7 @@ export async function PATCH(
     html: `
       <p>Congratulations, ${order.fullName}.</p>
       <p>Your order (${order.course.title}) has been confirmed. You can now access the course using the email and password you used at checkout.</p>
-      <p><a href="${baseUrl}/login">Login</a> | <a href="${baseUrl}/courses/${courseSlug}">View course</a></p>
+      ${baseUrl ? `<p><a href="${baseUrl}/login">Login</a> | <a href="${baseUrl}/courses/${courseSlug}">View course</a></p>` : ""}
     `,
   });
   if (!emailResult.ok) {

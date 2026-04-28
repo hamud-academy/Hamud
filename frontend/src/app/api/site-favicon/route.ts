@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import path from "path";
 import { getSiteBranding } from "@/lib/site-branding";
+import { getPublicAppOrigin } from "@/lib/resolve-media-url";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -24,9 +25,24 @@ export async function GET() {
 
   let pathname: string;
   try {
-    pathname = new URL(faviconUrl).pathname;
+    const url = new URL(faviconUrl);
+    const appOrigin = getPublicAppOrigin();
+
+    if (!appOrigin || url.origin !== appOrigin) {
+      return NextResponse.redirect(url, {
+        status: 307,
+        headers: {
+          "Cache-Control": "public, max-age=3600, s-maxage=3600",
+        },
+      });
+    }
+
+    pathname = url.pathname;
   } catch {
-    return new NextResponse(null, { status: 404 });
+    if (!faviconUrl.startsWith("/")) {
+      return new NextResponse(null, { status: 404 });
+    }
+    pathname = faviconUrl;
   }
 
   const relative = pathname.replace(/^\/+/, "");

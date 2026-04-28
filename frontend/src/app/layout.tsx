@@ -15,10 +15,9 @@ const DEFAULT_TITLE = "BaroSmart - Quality learning, wherever you are";
 const DEFAULT_DESCRIPTION =
   "Join thousands of students learning the latest skills. Learn quality knowledge wherever you are.";
 
-function faviconPathFromUrl(faviconUrl: string): string | null {
+function faviconHrefFromUrl(faviconUrl: string): string | null {
   try {
-    const p = new URL(faviconUrl).pathname;
-    return p || null;
+    return new URL(faviconUrl).toString();
   } catch {
     return faviconUrl.startsWith("/") ? faviconUrl : null;
   }
@@ -26,15 +25,15 @@ function faviconPathFromUrl(faviconUrl: string): string | null {
 
 export async function generateMetadata(): Promise<Metadata> {
   const { tabTitle, faviconUrl } = await getSiteBranding();
-  const iconPath = faviconUrl ? faviconPathFromUrl(faviconUrl) : null;
+  const iconHref = faviconUrl ? faviconHrefFromUrl(faviconUrl) : null;
   return {
     title: tabTitle || DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
-    ...(iconPath
+    ...(iconHref
       ? {
           icons: {
-            icon: iconPath,
-            shortcut: iconPath,
+            icon: iconHref,
+            shortcut: iconHref,
           },
         }
       : {}),

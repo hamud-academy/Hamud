@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { sendEmail } from "@/lib/resend";
 
 /**
- * Test Resend: soo booqo http://localhost:3000/api/test-email
- * Waxaa uu u diri fariin ADMIN_EMAIL. Haddii Resend shaqeeyo, "Last Used" Resend dashboard wuu u beddeli doonaa.
+ * Test email sender: soo booqo http://localhost:3000/api/test-email
+ * Waxaa uu u diri fariin ADMIN_EMAIL adigoo isticmaalaya SMTP/Gmail ama Resend fallback.
  */
 export async function GET() {
   if (process.env.NODE_ENV === "production") {
@@ -20,18 +20,16 @@ export async function GET() {
 
   const result = await sendEmail({
     to,
-    subject: "Test - BaroSmart Resend",
-    html: "<p>Tani waa fariin test. Resend waa shaqeynayaa.</p>",
+    subject: "Test - BaroSmart Email",
+    html: "<p>Tani waa fariin test. Email sender-ku waa shaqeynayaa.</p>",
   });
 
   if (!result.ok) {
-    const key = process.env.RESEND_API_KEY;
     const debug =
       process.env.NODE_ENV === "development"
         ? {
-            keyLoaded: !!key,
-            keyLength: key?.length ?? 0,
-            keyPrefix: key ? `${key.slice(0, 7)}...` : null,
+            smtpConfigured: !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS),
+            resendConfigured: !!process.env.RESEND_API_KEY,
           }
         : undefined;
     return NextResponse.json(
@@ -42,7 +40,6 @@ export async function GET() {
 
   return NextResponse.json({
     ok: true,
-    message: "Email sent. Check your inbox and Resend Dashboard (Last Used).",
-    id: (result as { data?: { id?: string } }).data?.id,
+    message: "Email sent. Check your inbox.",
   });
 }

@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { courseId, fullName, email, phone, country, address, region, postcode, paymentMethod, paymentRef, amount, password } = parsed.data;
+    const { courseId, fullName, phone, country, address, region, postcode, paymentMethod, paymentRef, amount, password } = parsed.data;
+    const email = parsed.data.email.trim().toLowerCase();
 
     const course = await prisma.course.findUnique({
       where: { id: courseId, published: true },

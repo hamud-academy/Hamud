@@ -11,6 +11,9 @@ type UploadOptions = { requirePublicUrl?: boolean };
  * Saves bytes to Vercel Blob when `BLOB_READ_WRITE_TOKEN` is set (production),
  * otherwise to `public/<path>` for local development.
  *
+ * Local disk returns `https?://…/path` when `getPublicAppOrigin()` is set, else a
+ * root-relative `/uploads/...` URL (same-origin in the browser).
+ *
  * Requires a **public** Vercel Blob store (`put` uses `access: "public"`). Private
  * stores cannot be toggled to public after creation — create a new public store if needed.
  */
@@ -18,7 +21,7 @@ export async function saveUploadedFile(
   relativePath: PublicUploadPath,
   data: Buffer,
   contentType: string,
-  options: UploadOptions = { requirePublicUrl: true }
+  _options: UploadOptions = {}
 ): Promise<{ url: string }> {
   const normalized = relativePath.replace(/^\/+/, "");
   const token = process.env.BLOB_READ_WRITE_TOKEN?.trim();
@@ -38,13 +41,9 @@ export async function saveUploadedFile(
     );
   }
 
+  // Local / self-hosted: write under `public/` and serve via Next static files.
+  // Root-relative URLs work on the same origin without NEXT_PUBLIC_APP_URL (localhost dev).
   const publicOrigin = getPublicAppOrigin();
-  if (options.requirePublicUrl !== false && !publicOrigin) {
-    throw new Error(
-      "File cannot be saved with a public URL. Add BLOB_READ_WRITE_TOKEN for Vercel Blob or set NEXT_PUBLIC_APP_URL to your public domain, then try again."
-    );
-  }
-
   const fullPath = path.join(process.cwd(), "public", normalized);
   await mkdir(path.dirname(fullPath), { recursive: true });
   await writeFile(fullPath, data);

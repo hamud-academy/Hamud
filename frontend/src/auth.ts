@@ -5,10 +5,12 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, rateLimitKeyFromString, resetRateLimit } from "@/lib/rate-limit";
+import { verifyAndConsumeMfaCode } from "@/lib/mfa";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(1, "Password required"),
+  mfaCode: z.string().optional(),
 });
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -21,12 +23,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: {},
         password: {},
+        mfaCode: {},
       },
       authorize: async (credentials) => {
         const parsed = signInSchema.safeParse(credentials);
         if (!parsed.success) return null;
 
-        const { email, password } = parsed.data;
+        const { password } = parsed.data;
+        const mfaCode = (parsed.data.mfaCode ?? "").trim();
+        const email = parsed.data.email.trim().toLowerCase();
         const rateLimitKey = rateLimitKeyFromString(`login:${email}`);
         const loginLimit = checkRateLimit(rateLimitKey, {
           limit: 8,
@@ -39,6 +44,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
+
+        if (user.role !== "ADMIN") {
+          if (!/^\d{6}$/.test(mfaCode)) return null;
+          const mfaValid = await verifyAndConsumeMfaCode(user.id, mfaCode);
+          if (!mfaValid) return null;
+        }
+
         resetRateLimit(rateLimitKey);
 
         return {

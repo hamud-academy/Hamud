@@ -25,6 +25,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
+  const studentEmail = order.email.trim().toLowerCase();
+
   if (order.status !== "PENDING") {
     return NextResponse.json(
       { error: "Order was already approved" },
@@ -35,14 +37,14 @@ export async function PATCH(
   let userId = order.userId;
   if (!userId) {
     const existingUser = await prisma.user.findUnique({
-      where: { email: order.email },
+      where: { email: studentEmail },
     });
     if (existingUser) {
       userId = existingUser.id;
     } else if (order.passwordHash) {
       const newUser = await prisma.user.create({
         data: {
-          email: order.email,
+          email: studentEmail,
           name: order.fullName,
           passwordHash: order.passwordHash,
           role: "STUDENT",
@@ -80,7 +82,7 @@ export async function PATCH(
   const baseUrl = getPublicAppOrigin();
   const courseSlug = order.course.slug ?? order.courseId;
   const emailResult = await sendEmail({
-    to: order.email,
+    to: studentEmail,
     subject: `Your order has been approved - ${order.course.title}`,
     html: `
       <p>Congratulations, ${order.fullName}.</p>

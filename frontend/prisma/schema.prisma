@@ -25,6 +25,7 @@ model User {
   createdCourses    Course[]           @relation("InstructorCourses")
   lessonCompletions LessonCompletion[]
   testimonies       Testimony[]
+  mfaChallenges     MfaChallenge[]
 
   @@index([role])
   @@index([createdAt])
@@ -35,6 +36,22 @@ enum UserRole {
   STUDENT
   INSTRUCTOR
   ADMIN
+}
+
+model MfaChallenge {
+  id         String    @id @default(cuid())
+  codeHash   String    @map("code_hash")
+  expiresAt  DateTime  @map("expires_at")
+  consumedAt DateTime? @map("consumed_at")
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+  @@map("mfa_challenges")
 }
 
 // ============ CATEGORIES ============

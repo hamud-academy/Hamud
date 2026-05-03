@@ -9,31 +9,76 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mfaCode, setMfaCode] = useState("");
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const justRegistered = searchParams.get("registered") === "1";
+
+  async function redirectAfterLogin() {
+    const session = await getSession();
+    const role = (session?.user as { role?: string })?.role;
+    if (role === "ADMIN") {
+      router.push("/admin");
+    } else if (role === "INSTRUCTOR") {
+      router.push("/teacher");
+    } else {
+      router.push(callbackUrl);
+    }
+    router.refresh();
+  }
+
+  async function requestSecurityCode() {
+    const normalizedEmail = email.trim().toLowerCase();
+    const res = await fetch("/api/auth/mfa/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: normalizedEmail, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "Invalid email or password");
+      return false;
+    }
+    setEmail(normalizedEmail);
+    if (data.mfaRequired === false) {
+      const signRes = await signIn("credentials", {
+        email: normalizedEmail,
+        password,
+        redirect: false,
+      });
+      if (signRes?.error) {
+        setError("Sign in failed");
+        return false;
+      }
+      await redirectAfterLogin();
+      return true;
+    }
+    setMfaRequired(true);
+    setMessage(data.message ?? "A 6-digit security code has been sent to your email.");
+    return true;
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setMessage("");
     setLoading(true);
     try {
-      const res = await signIn("credentials", { email, password, redirect: false });
-      if (res?.error) {
-        setError("Invalid email or password");
+      if (!mfaRequired) {
+        await requestSecurityCode();
         return;
       }
-      const session = await getSession();
-      const role = (session?.user as { role?: string })?.role;
-      if (role === "ADMIN") {
-        router.push("/admin");
-      } else if (role === "INSTRUCTOR") {
-        router.push("/teacher");
-      } else {
-        router.push(callbackUrl);
+
+      const res = await signIn("credentials", { email: email.trim().toLowerCase(), password, mfaCode, redirect: false });
+      if (res?.error) {
+        setError("Invalid or expired security code");
+        return;
       }
-      router.refresh();
+      await redirectAfterLogin();
     } catch {
       setError("Something went wrong");
     } finally {
@@ -43,10 +88,17 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {justRegistered && (
+        <div className="px-4 py-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 text-sm border border-emerald-100 dark:border-emerald-900/40">
+          Akoonkaaga ayaa la abuuray. Ku riix Continue, geli ereyga sirta ah, oo diiwan geli koodhka 6-da lambar ee email-ka. Haddii aysan imaanin waxaad hubsataa Spam/Promotions ama dib u diraysaa kodka.
+        </div>
+      )}
       {error && <div className="px-4 py-3 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 text-sm border border-red-100 dark:border-red-900/50">{error}</div>}
+      {message && <div className="px-4 py-3 rounded-lg bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-sm border border-blue-100 dark:border-blue-900/50">{message}</div>}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Email</label>
         <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
+          disabled={mfaRequired}
           className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 text-sm"
           placeholder="email@example.com" />
       </div>
@@ -54,6 +106,7 @@ export default function LoginForm() {
         <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Password</label>
         <div className="relative">
           <input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required
+            disabled={mfaRequired}
             className="w-full px-4 py-2.5 pr-11 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 text-sm"
             placeholder="••••••••" />
           <button
@@ -70,9 +123,59 @@ export default function LoginForm() {
           </button>
         </div>
       </div>
+      {mfaRequired && (
+        <div>
+          <label htmlFor="mfa-code" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Security code</label>
+          <input
+            id="mfa-code"
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            value={mfaCode}
+            onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            required
+            className="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 text-sm tracking-[0.35em]"
+            placeholder="123456"
+          />
+          <div className="flex items-center justify-between gap-3 mt-2 text-xs">
+            <button
+              type="button"
+              onClick={() => {
+                setMfaRequired(false);
+                setMfaCode("");
+                setMessage("");
+              }}
+              className="text-gray-500 hover:text-gray-700 dark:text-slate-400 dark:hover:text-slate-200"
+            >
+              Change email or password
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                setError("");
+                setMessage("");
+                setLoading(true);
+                try {
+                  await requestSecurityCode();
+                } catch {
+                  setError("Something went wrong");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+              className="font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50 dark:text-blue-400"
+            >
+              Resend code
+            </button>
+          </div>
+        </div>
+      )}
       <button type="submit" disabled={loading}
         className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition text-sm">
-        {loading ? "Loading..." : "Sign in"}
+        {loading ? "Loading..." : mfaRequired ? "Verify and sign in" : "Continue"}
       </button>
     </form>
   );

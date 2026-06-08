@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import Header from "@/components/Header";
 import CoursesFilters from "@/components/CoursesFilters";
 import CoursesGrid from "@/components/CoursesGrid";
+import CoursesPageIntro from "@/components/CoursesPageIntro";
+import CoursesPagination from "@/components/CoursesPagination";
 import Footer from "@/components/Footer";
 
 interface Props {
@@ -42,7 +44,7 @@ async function getCourses(params: { category?: string; level?: string; search?: 
     ];
   }
 
-  const [courses, total, categories] = await Promise.all([
+  const [rawCourses, total, categories] = await Promise.all([
     prisma.course.findMany({
       where,
       include: {
@@ -57,6 +59,19 @@ async function getCourses(params: { category?: string; level?: string; search?: 
     prisma.course.count({ where }),
     prisma.category.findMany({ orderBy: { name: "asc" }, include: { _count: { select: { courses: true } } } }),
   ]);
+
+  const courses = rawCourses.map((course) => ({
+    id: course.id,
+    title: course.title,
+    slug: course.slug,
+    thumbnail: course.thumbnail,
+    price: Number(course.price),
+    originalPrice: course.originalPrice != null ? Number(course.originalPrice) : null,
+    durationHours: course.durationHours != null ? Number(course.durationHours) : null,
+    category: course.category,
+    instructor: course.instructor,
+    _count: course._count,
+  }));
 
   return {
     courses,
@@ -74,21 +89,7 @@ export default async function CoursesPage({ searchParams }: Props) {
       <Header />
       <main className="min-h-screen pt-14 sm:pt-16 bg-gradient-to-b from-slate-50 via-white to-blue-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-          <div className="mb-4 sm:mb-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-blue-600/90 dark:text-blue-400 mb-1">Catalog</p>
-              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Available courses</h1>
-              <p className="text-slate-600 dark:text-slate-300 mt-1 text-sm max-w-xl leading-6">
-                Sharpen your skills with courses from expert instructors. Use the filters to narrow what you need.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="inline-flex items-center rounded-full bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 mr-2" aria-hidden />
-                {pagination.total} {pagination.total === 1 ? "result" : "results"}
-              </span>
-            </div>
-          </div>
+          <CoursesPageIntro total={pagination.total} />
 
           <Suspense fallback={<div className="mb-8 h-28 animate-pulse rounded-3xl bg-slate-100 dark:bg-slate-800" />}>
             <CoursesFilters
@@ -102,29 +103,18 @@ export default async function CoursesPage({ searchParams }: Props) {
           <div className="mt-5 sm:mt-6">
             <CoursesGrid courses={courses} />
 
-            {pagination.totalPages > 1 && (
-              <nav className="flex flex-wrap justify-center items-center gap-3 mt-10 sm:mt-12">
-                {pagination.page > 1 && (
-                  <Link
-                    href={buildUrl(params, { page: String(pagination.page - 1) })}
-                    className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:text-blue-700 text-sm font-semibold shadow-sm transition"
-                  >
-                    ← Previous
-                  </Link>
-                )}
-                <span className="px-4 py-2 text-slate-600 text-sm font-medium tabular-nums">
-                  Page {pagination.page} / {pagination.totalPages}
-                </span>
-                {pagination.page < pagination.totalPages && (
-                  <Link
-                    href={buildUrl(params, { page: String(pagination.page + 1) })}
-                    className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:text-blue-700 text-sm font-semibold shadow-sm transition"
-                  >
-                    Next →
-                  </Link>
-                )}
-              </nav>
-            )}
+            <CoursesPagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              prevHref={
+                pagination.page > 1 ? buildUrl(params, { page: String(pagination.page - 1) }) : null
+              }
+              nextHref={
+                pagination.page < pagination.totalPages
+                  ? buildUrl(params, { page: String(pagination.page + 1) })
+                  : null
+              }
+            />
           </div>
         </div>
       </main>

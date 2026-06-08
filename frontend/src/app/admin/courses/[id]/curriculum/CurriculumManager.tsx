@@ -19,6 +19,7 @@ interface Lesson {
   videoUrl: string | null;
   documentUrl: string | null;
   hasQuiz?: boolean;
+  quiz?: { questions: QuizQuestionDraft[] };
   duration: number | null;
   order: number;
 }
@@ -50,11 +51,25 @@ export default function CurriculumManager({ courseId, initialModules }: Props) {
     documentUrl: string;
     quiz: { questions: QuizQuestionDraft[] };
   } | null>(null);
+  const [editingModule, setEditingModule] = useState<{ id: string; title: string } | null>(null);
+  const [savingModule, setSavingModule] = useState(false);
+  const [editingLesson, setEditingLesson] = useState<{
+    moduleId: string;
+    lessonId: string;
+    title: string;
+    videoUrl: string;
+    documentUrl: string;
+    duration: string;
+    quiz: { questions: QuizQuestionDraft[] };
+  } | null>(null);
+  const [savingLesson, setSavingLesson] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadingDocument, setUploadingDocument] = useState(false);
   const [error, setError] = useState("");
   const videoInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
+  const editVideoInputRef = useRef<HTMLInputElement>(null);
+  const editDocumentInputRef = useRef<HTMLInputElement>(null);
 
   async function handleAddModule() {
     if (!newModuleTitle.trim()) return;
@@ -99,7 +114,44 @@ export default function CurriculumManager({ courseId, initialModules }: Props) {
     }
   }
 
+  function startEditModule(mod: Module) {
+    setError("");
+    setEditingLesson(null);
+    setEditingModule({ id: mod.id, title: mod.title });
+    setExpandedModule(mod.id);
+  }
+
+  async function handleSaveModule() {
+    if (!editingModule || !editingModule.title.trim()) return;
+    setError("");
+    setSavingModule(true);
+    try {
+      const res = await fetch(`/api/admin/modules/${editingModule.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: editingModule.title.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error");
+        return;
+      }
+      setModules((prev) =>
+        prev.map((m) =>
+          m.id === editingModule.id ? { ...m, title: data.module.title } : m
+        )
+      );
+      setEditingModule(null);
+      router.refresh();
+    } catch {
+      setError("Error");
+    } finally {
+      setSavingModule(false);
+    }
+  }
+
   function startAddLesson(moduleId: string) {
+    setEditingLesson(null);
     setNewLesson({
       moduleId,
       title: "",
@@ -182,36 +234,59 @@ export default function CurriculumManager({ courseId, initialModules }: Props) {
     });
   }
 
+  function setEditQuizCorrectOption(qIdx: number, optIdx: number) {
+    setEditingLesson((n) => {
+      if (!n) return n;
+      const questions = n.quiz.questions.map((q, i) => {
+        if (i !== qIdx) return q;
+        return {
+          ...q,
+          options: q.options.map((o, j) => ({
+            ...o,
+            isCorrect: j === optIdx,
+          })),
+        };
+      });
+      return { ...n, quiz: { questions } };
+    });
+  }
+
+  function buildQuizPayload(questions: QuizQuestionDraft[], includeEmpty = false) {
+    if (questions.length === 0) {
+      return includeEmpty ? { questions: [] } : undefined;
+    }
+
+    const cleaned = questions.map((q) => {
+      const prompt = q.prompt.trim();
+      const options = q.options
+        .map((o) => ({ text: o.text.trim(), isCorrect: o.isCorrect }))
+        .filter((o) => o.text.length > 0);
+      return { prompt, options };
+    });
+    for (let i = 0; i < cleaned.length; i++) {
+      if (!cleaned[i].prompt) {
+        setError(`Quiz question ${i + 1}: enter the question text.`);
+        return null;
+      }
+      if (cleaned[i].options.length < 2) {
+        setError(`Quiz question ${i + 1}: add at least two answer options with text.`);
+        return null;
+      }
+      const correct = cleaned[i].options.filter((o) => o.isCorrect);
+      if (correct.length !== 1) {
+        setError(`Quiz question ${i + 1}: select exactly one correct answer.`);
+        return null;
+      }
+    }
+    return { questions: cleaned };
+  }
+
   async function handleAddLesson() {
     if (!newLesson || !newLesson.title.trim()) return;
     setError("");
 
-    let quizPayload: { questions: { prompt: string; options: { text: string; isCorrect: boolean }[] }[] } | undefined;
-    if (newLesson.quiz.questions.length > 0) {
-      const cleaned = newLesson.quiz.questions.map((q) => {
-        const prompt = q.prompt.trim();
-        const options = q.options
-          .map((o) => ({ text: o.text.trim(), isCorrect: o.isCorrect }))
-          .filter((o) => o.text.length > 0);
-        return { prompt, options };
-      });
-      for (let i = 0; i < cleaned.length; i++) {
-        if (!cleaned[i].prompt) {
-          setError(`Quiz question ${i + 1}: enter the question text.`);
-          return;
-        }
-        if (cleaned[i].options.length < 2) {
-          setError(`Quiz question ${i + 1}: add at least two answer options with text.`);
-          return;
-        }
-        const correct = cleaned[i].options.filter((o) => o.isCorrect);
-        if (correct.length !== 1) {
-          setError(`Quiz question ${i + 1}: select exactly one correct answer.`);
-          return;
-        }
-      }
-      quizPayload = { questions: cleaned };
-    }
+    const quizPayload = buildQuizPayload(newLesson.quiz.questions);
+    if (quizPayload === null) return;
 
     try {
       const res = await fetch(`/api/admin/modules/${newLesson.moduleId}/lessons`, {
@@ -240,6 +315,142 @@ export default function CurriculumManager({ courseId, initialModules }: Props) {
       router.refresh();
     } catch {
       setError("Error");
+    }
+  }
+
+  function startEditLesson(moduleId: string, lesson: Lesson) {
+    setError("");
+    setNewLesson(null);
+    setEditingLesson({
+      moduleId,
+      lessonId: lesson.id,
+      title: lesson.title,
+      videoUrl: lesson.videoUrl ?? "",
+      documentUrl: lesson.documentUrl ?? "",
+      duration: lesson.duration == null ? "" : String(lesson.duration),
+      quiz: {
+        questions:
+          lesson.quiz?.questions.map((q) => ({
+            prompt: q.prompt,
+            options: q.options.map((o) => ({ ...o })),
+          })) ?? [],
+      },
+    });
+    setExpandedModule(moduleId);
+  }
+
+  async function handleEditVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !editingLesson) return;
+    setError("");
+    setUploadingVideo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload/lesson-video", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Upload failed");
+        return;
+      }
+      setEditingLesson((n) => n && { ...n, videoUrl: data.url });
+    } catch {
+      setError("Upload failed");
+    } finally {
+      setUploadingVideo(false);
+      e.target.value = "";
+    }
+  }
+
+  async function handleEditDocumentUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !editingLesson) return;
+    setError("");
+    setUploadingDocument(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload/lesson-document", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Upload failed");
+        return;
+      }
+      setEditingLesson((n) => n && { ...n, documentUrl: data.url });
+    } catch {
+      setError("Upload failed");
+    } finally {
+      setUploadingDocument(false);
+      e.target.value = "";
+    }
+  }
+
+  async function handleSaveLesson() {
+    if (!editingLesson || !editingLesson.title.trim()) return;
+    setError("");
+
+    const quizPayload = buildQuizPayload(editingLesson.quiz.questions, true);
+    if (quizPayload === null) return;
+
+    const durationText = editingLesson.duration.trim();
+    const duration = durationText ? Number(durationText) : null;
+    if (duration !== null && (!Number.isInteger(duration) || duration < 0)) {
+      setError("Duration must be a whole number of minutes.");
+      return;
+    }
+
+    setSavingLesson(true);
+    try {
+      const res = await fetch(`/api/admin/lessons/${editingLesson.lessonId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editingLesson.title.trim(),
+          videoUrl: editingLesson.videoUrl.trim() || null,
+          documentUrl: editingLesson.documentUrl.trim() || null,
+          duration,
+          quiz: quizPayload,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error");
+        return;
+      }
+      setModules((prev) =>
+        prev.map((m) =>
+          m.id === editingLesson.moduleId
+            ? {
+                ...m,
+                lessons: m.lessons.map((l) =>
+                  l.id === editingLesson.lessonId
+                    ? {
+                        ...l,
+                        title: data.lesson.title,
+                        videoUrl: data.lesson.videoUrl,
+                        documentUrl: data.lesson.documentUrl,
+                        duration: data.lesson.duration,
+                        hasQuiz: editingLesson.quiz.questions.length > 0,
+                        quiz: quizPayload,
+                      }
+                    : l
+                ),
+              }
+            : m
+        )
+      );
+      setEditingLesson(null);
+      router.refresh();
+    } catch {
+      setError("Error");
+    } finally {
+      setSavingLesson(false);
     }
   }
 
@@ -320,7 +531,7 @@ export default function CurriculumManager({ courseId, initialModules }: Props) {
               }}
               className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 cursor-pointer"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <svg
                   className={`w-5 h-5 text-gray-400 transition ${expandedModule === mod.id ? "rotate-90" : ""}`}
                   fill="none"
@@ -329,48 +540,372 @@ export default function CurriculumManager({ courseId, initialModules }: Props) {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-                <span className="font-semibold text-gray-900">{mod.title}</span>
+                <span className="font-semibold text-gray-900 truncate">{mod.title}</span>
                 <span className="text-sm text-gray-500">({mod.lessons.length} lessons)</span>
               </div>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteModule(mod.id);
-                }}
-                className="text-red-600 text-sm hover:underline"
-              >
-                Delete
-              </button>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    startEditModule(mod);
+                  }}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteModule(mod.id);
+                  }}
+                  className="text-red-600 text-sm hover:underline"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
 
             {expandedModule === mod.id && (
               <div className="border-t border-gray-100 p-4 bg-gray-50/50">
+                {editingModule?.id === mod.id && (
+                  <div className="mb-4 p-4 bg-white rounded-lg border-2 border-blue-200 space-y-3">
+                    <label className="block text-xs font-medium text-gray-600">Module title</label>
+                    <input
+                      type="text"
+                      value={editingModule.title}
+                      onChange={(e) =>
+                        setEditingModule((m) => (m ? { ...m, title: e.target.value } : m))
+                      }
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveModule}
+                        disabled={savingModule || !editingModule.title.trim()}
+                        className="px-3 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50"
+                      >
+                        {savingModule ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingModule(null)}
+                        className="px-3 py-2 rounded-lg border border-gray-200 text-gray-700 text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <h3 className="text-sm font-medium text-gray-700 mb-3">Lessons</h3>
                 <div className="space-y-2">
                   {mod.lessons.map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      className="flex items-center justify-between gap-4 p-3 bg-white rounded-lg border border-gray-100"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-gray-900 truncate">{lesson.title}</p>
-                        {lesson.videoUrl && (
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{lesson.videoUrl}</p>
-                        )}
-                        {lesson.documentUrl && (
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{lesson.documentUrl}</p>
-                        )}
-                        {lesson.hasQuiz && (
-                          <p className="text-xs text-blue-600 mt-0.5">Quiz attached</p>
-                        )}
+                    <div key={lesson.id} className="space-y-2">
+                      <div className="flex items-center justify-between gap-4 p-3 bg-white rounded-lg border border-gray-100">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-gray-900 truncate">{lesson.title}</p>
+                          {lesson.videoUrl && (
+                            <p className="text-xs text-gray-500 truncate mt-0.5">{lesson.videoUrl}</p>
+                          )}
+                          {lesson.documentUrl && (
+                            <p className="text-xs text-gray-500 truncate mt-0.5">{lesson.documentUrl}</p>
+                          )}
+                          {lesson.hasQuiz && (
+                            <p className="text-xs text-blue-600 mt-0.5">Quiz attached</p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => startEditLesson(mod.id, lesson)}
+                            className="text-blue-600 text-sm hover:underline"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteLesson(mod.id, lesson.id)}
+                            className="text-red-600 text-sm hover:underline"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteLesson(mod.id, lesson.id)}
-                        className="text-red-600 text-sm hover:underline flex-shrink-0"
-                      >
-                        Delete
-                      </button>
+                      {editingLesson?.lessonId === lesson.id && (
+                        <div className="p-4 bg-white rounded-lg border-2 border-blue-200 space-y-3">
+                          <input
+                            type="text"
+                            value={editingLesson.title}
+                            onChange={(e) =>
+                              setEditingLesson((n) => n && { ...n, title: e.target.value })
+                            }
+                            placeholder="Lesson title"
+                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg"
+                          />
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Video (URL or upload)</label>
+                            <input
+                              type="url"
+                              value={editingLesson.videoUrl}
+                              onChange={(e) =>
+                                setEditingLesson((n) => n && { ...n, videoUrl: e.target.value })
+                              }
+                              placeholder="YouTube, Vimeo, ama direct link (http://...)"
+                              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg mb-2"
+                            />
+                            <input
+                              ref={editVideoInputRef}
+                              type="file"
+                              accept="video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.ogg,.mov"
+                              onChange={handleEditVideoUpload}
+                              className="hidden"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => editVideoInputRef.current?.click()}
+                              disabled={uploadingVideo}
+                              className="px-3 py-2 rounded-lg border-2 border-gray-200 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+                            >
+                              {uploadingVideo ? "Uploading..." : "Or upload video (MP4, WebM, OGG, MOV - max 5GB)"}
+                            </button>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">
+                              Document (URL or upload — PDF, Word, Excel)
+                            </label>
+                            <input
+                              type="url"
+                              value={editingLesson.documentUrl}
+                              onChange={(e) =>
+                                setEditingLesson((n) => n && { ...n, documentUrl: e.target.value })
+                              }
+                              placeholder="Direct link to PDF, Word, or Excel (http://...)"
+                              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg mb-2"
+                            />
+                            <input
+                              ref={editDocumentInputRef}
+                              type="file"
+                              accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                              onChange={handleEditDocumentUpload}
+                              className="hidden"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => editDocumentInputRef.current?.click()}
+                              disabled={uploadingDocument}
+                              className="px-3 py-2 rounded-lg border-2 border-gray-200 text-sm font-medium hover:bg-gray-50 disabled:opacity-50"
+                            >
+                              {uploadingDocument
+                                ? "Uploading..."
+                                : "Or upload document (PDF, DOC, DOCX, XLS, XLSX — max 50MB)"}
+                            </button>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 mb-1">Duration (minutes)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={editingLesson.duration}
+                              onChange={(e) =>
+                                setEditingLesson((n) => n && { ...n, duration: e.target.value })
+                              }
+                              placeholder="Optional"
+                              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg"
+                            />
+                          </div>
+                          <div className="border-t border-gray-100 pt-3 space-y-3">
+                            <div className="flex items-center justify-between gap-3">
+                              <label className="block text-xs font-medium text-gray-600">
+                                Quiz (optional — edit, remove, or add questions)
+                              </label>
+                              {editingLesson.quiz.questions.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setEditingLesson((n) =>
+                                      n ? { ...n, quiz: { questions: [] } } : n
+                                    )
+                                  }
+                                  className="text-xs text-red-600 hover:underline"
+                                >
+                                  Remove quiz
+                                </button>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditingLesson((n) =>
+                                  n
+                                    ? {
+                                        ...n,
+                                        quiz: {
+                                          questions: [
+                                            ...n.quiz.questions,
+                                            { prompt: "", options: defaultQuizOptions() },
+                                          ],
+                                        },
+                                      }
+                                    : n
+                                )
+                              }
+                              className="text-sm text-blue-600 font-medium hover:underline"
+                            >
+                              + Add quiz question
+                            </button>
+                            {editingLesson.quiz.questions.map((q, qIdx) => (
+                              <div
+                                key={qIdx}
+                                className="p-3 rounded-lg border border-gray-200 bg-gray-50/80 space-y-2"
+                              >
+                                <div className="flex justify-between items-center gap-2">
+                                  <span className="text-xs font-medium text-gray-600">
+                                    Question {qIdx + 1}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setEditingLesson((n) =>
+                                        n
+                                          ? {
+                                              ...n,
+                                              quiz: {
+                                                questions: n.quiz.questions.filter(
+                                                  (_, i) => i !== qIdx
+                                                ),
+                                              },
+                                            }
+                                          : n
+                                      )
+                                    }
+                                    className="text-xs text-red-600 hover:underline"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                                <input
+                                  type="text"
+                                  value={q.prompt}
+                                  onChange={(e) =>
+                                    setEditingLesson((n) => {
+                                      if (!n) return n;
+                                      const questions = [...n.quiz.questions];
+                                      questions[qIdx] = {
+                                        ...questions[qIdx],
+                                        prompt: e.target.value,
+                                      };
+                                      return { ...n, quiz: { questions } };
+                                    })
+                                  }
+                                  placeholder="Question text"
+                                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg text-sm"
+                                />
+                                <p className="text-xs text-gray-500">Answers — select the correct one:</p>
+                                {q.options.map((opt, oIdx) => (
+                                  <div key={oIdx} className="flex items-center gap-2 flex-wrap">
+                                    <input
+                                      type="radio"
+                                      name={`edit-correct-${lesson.id}-${qIdx}`}
+                                      checked={opt.isCorrect}
+                                      onChange={() => setEditQuizCorrectOption(qIdx, oIdx)}
+                                      className="shrink-0"
+                                    />
+                                    <input
+                                      type="text"
+                                      value={opt.text}
+                                      onChange={(e) =>
+                                        setEditingLesson((n) => {
+                                          if (!n) return n;
+                                          const questions = [...n.quiz.questions];
+                                          const opts = [...questions[qIdx].options];
+                                          opts[oIdx] = {
+                                            ...opts[oIdx],
+                                            text: e.target.value,
+                                          };
+                                          questions[qIdx] = {
+                                            ...questions[qIdx],
+                                            options: opts,
+                                          };
+                                          return { ...n, quiz: { questions } };
+                                        })
+                                      }
+                                      placeholder={`Option ${oIdx + 1}`}
+                                      className="flex-1 min-w-[120px] px-2 py-1.5 border border-gray-200 rounded-lg text-sm"
+                                    />
+                                    {q.options.length > 2 && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setEditingLesson((n) => {
+                                            if (!n) return n;
+                                            const questions = [...n.quiz.questions];
+                                            let opts = questions[qIdx].options.filter(
+                                              (_, i) => i !== oIdx
+                                            );
+                                            if (opts.length && !opts.some((o) => o.isCorrect)) {
+                                              opts = opts.map((o, i) => ({
+                                                ...o,
+                                                isCorrect: i === 0,
+                                              }));
+                                            }
+                                            questions[qIdx] = {
+                                              ...questions[qIdx],
+                                              options: opts,
+                                            };
+                                            return { ...n, quiz: { questions } };
+                                          })
+                                        }
+                                        className="text-xs text-gray-500 hover:text-red-600"
+                                      >
+                                        Remove
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setEditingLesson((n) => {
+                                      if (!n) return n;
+                                      const questions = [...n.quiz.questions];
+                                      questions[qIdx] = {
+                                        ...questions[qIdx],
+                                        options: [
+                                          ...questions[qIdx].options,
+                                          { text: "", isCorrect: false },
+                                        ],
+                                      };
+                                      return { ...n, quiz: { questions } };
+                                    })
+                                  }
+                                  className="text-xs text-blue-600 hover:underline"
+                                >
+                                  + Add option
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={handleSaveLesson}
+                              disabled={savingLesson || !editingLesson.title.trim()}
+                              className="px-3 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 disabled:opacity-50"
+                            >
+                              {savingLesson ? "Saving..." : "Save"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingLesson(null)}
+                              className="px-3 py-2 rounded-lg border border-gray-200 text-gray-700 text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
 

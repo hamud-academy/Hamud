@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { normalizeCourseThumbnail } from "@/lib/course-thumbnail";
+import { syncDiplomaTeacherForCourse } from "@/lib/diploma-teacher-access";
 import { z } from "zod";
 
 const updateSchema = z.object({
@@ -16,6 +18,7 @@ const updateSchema = z.object({
   durationHours: z.number().min(0).optional().nullable(),
   published: z.boolean().optional(),
   categoryId: z.string().min(1).optional(),
+  instructorId: z.string().min(1).optional(),
 });
 
 export async function PATCH(
@@ -74,6 +77,18 @@ export async function PATCH(
     }
   }
 
+  if (data.instructorId) {
+    if (user?.role !== "ADMIN") {
+      return NextResponse.json({ error: "Only admin can assign instructors" }, { status: 403 });
+    }
+    const instructor = await prisma.user.findUnique({
+      where: { id: data.instructorId, role: "INSTRUCTOR" },
+    });
+    if (!instructor) {
+      return NextResponse.json({ error: "Instructor not found or not an INSTRUCTOR" }, { status: 400 });
+    }
+  }
+
   const updated = await prisma.course.update({
     where: { id },
     data: {
@@ -88,8 +103,21 @@ export async function PATCH(
       ...(data.durationHours !== undefined && { durationHours: data.durationHours }),
       ...(data.published !== undefined && { published: data.published }),
       ...(data.categoryId != null && { categoryId: data.categoryId }),
+      ...(data.instructorId != null && { instructorId: data.instructorId }),
+    },
+    include: {
+      instructor: { select: { id: true, name: true, email: true } },
     },
   });
+
+  if (data.instructorId != null) {
+    try {
+      await syncDiplomaTeacherForCourse(updated.id, updated.instructorId);
+      revalidatePath("/teacher/diploma");
+    } catch (error) {
+      console.error("diploma teacher sync error:", error);
+    }
+  }
 
   return NextResponse.json({
     success: true,
@@ -99,6 +127,8 @@ export async function PATCH(
       slug: updated.slug,
       price: Number(updated.price),
       published: updated.published,
+      instructorId: updated.instructorId,
+      instructor: updated.instructor,
     },
   });
 }

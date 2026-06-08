@@ -15,6 +15,29 @@ function getRecipients(to: string | string[]) {
   return Array.isArray(to) ? to : [to];
 }
 
+/** Order alerts go to the primary admin inbox (DB first, then ADMIN_EMAIL env). */
+export async function getAdminNotificationEmail(): Promise<string> {
+  const { getPrimaryAdminEmail } = await import("@/lib/admin-env");
+  return getPrimaryAdminEmail();
+}
+
+export async function notifyAdminByEmail(options: Omit<SendEmailOptions, "to">) {
+  const recipient = await getAdminNotificationEmail();
+
+  const result = await sendEmail({
+    ...options,
+    to: recipient,
+  });
+
+  if (result.ok) {
+    console.log("[Email] Admin notification sent to:", recipient);
+  } else {
+    console.error("[Email] Admin notification failed:", result.error);
+  }
+
+  return result;
+}
+
 /** Bare address for SMTP envelope/from auth (e.g. "Name <x@y.com>" → x@y.com). */
 function envelopeFromAddress(fromHeader: string) {
   const m = fromHeader.match(/<\s*([^>\s]+)\s*>/);

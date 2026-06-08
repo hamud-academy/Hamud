@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { getDiplomaConfig } from "@/lib/diploma-config";
 import { prisma } from "@/lib/prisma";
 import StudentsPageClient from "./StudentsPageClient";
 
@@ -10,15 +11,23 @@ export default async function AdminStudentsPage() {
     redirect("/admin");
   }
 
-  const courses = await prisma.course.findMany({
-    orderBy: { title: "asc" },
-    select: { id: true, title: true, slug: true },
-  });
+  const [courses, diplomaConfig] = await Promise.all([
+    prisma.course.findMany({
+      orderBy: { title: "asc" },
+      select: { id: true, title: true, slug: true },
+    }),
+    getDiplomaConfig(),
+  ]);
+
+  const diplomaPrograms = diplomaConfig.programs
+    .filter((program) => program.status === "PUBLISHED")
+    .map((program) => ({ id: program.id, title: program.title, slug: program.slug }))
+    .sort((a, b) => a.title.localeCompare(b.title));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
       <div className="p-4 sm:p-6 md:p-8">
-        <StudentsPageClient courses={courses} />
+        <StudentsPageClient courses={courses} diplomaPrograms={diplomaPrograms} />
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { auth } from "@/auth";
+import { DEFAULT_SITE_NAME } from "@/lib/default-site";
 import { redirect } from "next/navigation";
 import ChangeNameForm from "./ChangeNameForm";
 
@@ -10,7 +11,7 @@ export default async function ChangeNamePage() {
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-2xl">
       <h1 className="text-2xl font-bold text-slate-900 mb-2">Change Name</h1>
-      <p className="text-slate-600 mb-6">Update the site name (e.g. BaroSmart).</p>
+      <p className="text-slate-600 mb-6">Update the site name (e.g. {DEFAULT_SITE_NAME}).</p>
       <ChangeNameForm />
     </div>
   );

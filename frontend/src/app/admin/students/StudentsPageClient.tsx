@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import StudentDetailModal, { type StudentDetail } from "./StudentDetailModal";
+import StudentResetPasswordModal from "./StudentResetPasswordModal";
 
 type Course = { id: string; title: string; slug: string };
+type DiplomaProgram = { id: string; title: string; slug: string };
 type Enrollment = {
   id: string;
   courseId: string;
@@ -12,29 +15,59 @@ type Enrollment = {
   enrolledAt: string;
   progress: number;
 };
+type DiplomaEnrollment = {
+  id: string;
+  programId: string;
+  programTitle: string;
+  programSlug: string;
+  planType: string;
+  planTitle: string | null;
+  enrolledAt: string;
+};
 type Student = {
   id: string;
   name: string | null;
   email: string;
   createdAt: string;
   enrollments: Enrollment[];
+  diplomaEnrollments: DiplomaEnrollment[];
 };
 
-export default function StudentsPageClient({ courses }: { courses: Course[] }) {
+function latestEnrollmentDate(student: Student): string | null {
+  const dates = [
+    ...student.enrollments.map((e) => e.enrolledAt),
+    ...student.diplomaEnrollments.map((d) => d.enrolledAt),
+  ].sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  return dates[0] ?? null;
+}
+
+function hasAnyEnrollment(student: Student) {
+  return student.enrollments.length > 0 || student.diplomaEnrollments.length > 0;
+}
+
+export default function StudentsPageClient({
+  courses,
+  diplomaPrograms,
+}: {
+  courses: Course[];
+  diplomaPrograms: DiplomaProgram[];
+}) {
   const router = useRouter();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [courseId, setCourseId] = useState("");
+  const [programId, setProgramId] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
-  const [viewStudent, setViewStudent] = useState<Student | null>(null);
-  const [editStudent, setEditStudent] = useState<Student | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [viewStudentId, setViewStudentId] = useState<string | null>(null);
+  const [studentDetail, setStudentDetail] = useState<StudentDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [resetStudent, setResetStudent] = useState<Student | null>(null);
+  const [resetSuccess, setResetSuccess] = useState<string | null>(null);
 
   const fetchStudents = useCallback(async () => {
     setLoading(true);
@@ -42,6 +75,7 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
     try {
       const params = new URLSearchParams();
       if (courseId) params.set("courseId", courseId);
+      if (programId) params.set("programId", programId);
       if (dateFrom) params.set("dateFrom", dateFrom);
       if (dateTo) params.set("dateTo", dateTo);
       if (search.trim()) params.set("search", search.trim());
@@ -59,36 +93,11 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
     } finally {
       setLoading(false);
     }
-  }, [courseId, dateFrom, dateTo, search]);
+  }, [courseId, programId, dateFrom, dateTo, search]);
 
   useEffect(() => {
     fetchStudents();
   }, [fetchStudents]);
-
-  async function handleUpdate() {
-    if (!editStudent) return;
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/admin/students/${editStudent.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editName.trim() || undefined, email: editEmail.trim() || undefined }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Update failed");
-        return;
-      }
-      setEditStudent(null);
-      fetchStudents();
-      router.refresh();
-    } catch {
-      setError("Connection error");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function handleDelete(id: string) {
     if (!confirm("Are you sure you want to delete this student? This will remove all their enrollments.")) return;
@@ -101,8 +110,8 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
         setError(data.error ?? "Delete failed");
         return;
       }
-      setViewStudent((s) => (s?.id === id ? null : s));
-      setEditStudent((s) => (s?.id === id ? null : s));
+      setViewStudentId((current) => (current === id ? null : current));
+      setStudentDetail((current) => (current?.id === id ? null : current));
       fetchStudents();
       router.refresh();
     } catch {
@@ -112,10 +121,31 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
     }
   }
 
-  function openEdit(s: Student) {
-    setEditStudent(s);
-    setEditName(s.name ?? "");
-    setEditEmail(s.email);
+  async function openView(studentId: string) {
+    setViewStudentId(studentId);
+    setStudentDetail(null);
+    setDetailError(null);
+    setDetailLoading(true);
+    try {
+      const res = await fetch(`/api/admin/students/${studentId}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setDetailError(data.error ?? "Failed to load student details");
+        return;
+      }
+      setStudentDetail(data as StudentDetail);
+    } catch {
+      setDetailError("Connection error");
+    } finally {
+      setDetailLoading(false);
+    }
+  }
+
+  function closeView() {
+    setViewStudentId(null);
+    setStudentDetail(null);
+    setDetailError(null);
+    setDetailLoading(false);
   }
 
   return (
@@ -123,7 +153,7 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Students</h1>
         <p className="text-slate-500 mt-1">
-          Approved students. View, edit, or remove students. Filter by course and date.
+          Approved students. View course and diploma enrollments. Filter by course, diploma, or date.
         </p>
       </div>
 
@@ -134,12 +164,31 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
             <label className="block text-xs font-medium text-slate-500 mb-1">Course</label>
             <select
               value={courseId}
-              onChange={(e) => setCourseId(e.target.value)}
+              onChange={(e) => {
+                setCourseId(e.target.value);
+                if (e.target.value) setProgramId("");
+              }}
               className="px-3 py-2 border border-slate-200 rounded-xl text-sm min-w-[180px]"
             >
               <option value="">All courses</option>
               {courses.map((c) => (
                 <option key={c.id} value={c.id}>{c.title}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Diploma</label>
+            <select
+              value={programId}
+              onChange={(e) => {
+                setProgramId(e.target.value);
+                if (e.target.value) setCourseId("");
+              }}
+              className="px-3 py-2 border border-teal-200 rounded-xl text-sm min-w-[200px] bg-white"
+            >
+              <option value="">All diplomas</option>
+              {diplomaPrograms.map((program) => (
+                <option key={program.id} value={program.id}>{program.title}</option>
               ))}
             </select>
           </div>
@@ -178,6 +227,12 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
         <div className="mb-4 p-4 rounded-xl bg-red-50 text-red-600 text-sm border border-red-100">{error}</div>
       )}
 
+      {resetSuccess && (
+        <div className="mb-4 p-4 rounded-xl bg-emerald-50 text-emerald-700 text-sm border border-emerald-100">
+          {resetSuccess}
+        </div>
+      )}
+
       {loading ? (
         <div className="py-12 text-center text-slate-500">Loading students...</div>
       ) : students.length === 0 ? (
@@ -193,7 +248,7 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
                 <tr className="border-b border-slate-100 bg-slate-50/50">
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Name</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Courses</th>
+                  <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Courses / Diplomas</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Enrolled</th>
                   <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                 </tr>
@@ -204,30 +259,47 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
                     <td className="px-6 py-4 font-medium text-slate-900">{s.name || "—"}</td>
                     <td className="px-6 py-4 text-slate-700">{s.email}</td>
                     <td className="px-6 py-4 text-slate-700">
-                      {s.enrollments.length === 0
-                        ? "—"
-                        : s.enrollments.map((e) => e.courseTitle).join(", ")}
+                      {!hasAnyEnrollment(s) ? (
+                        "—"
+                      ) : (
+                        <div className="flex flex-col gap-1">
+                          {s.enrollments.map((e) => (
+                            <span key={e.id}>{e.courseTitle}</span>
+                          ))}
+                          {s.diplomaEnrollments.map((d) => (
+                            <span key={d.id} className="text-teal-800">
+                              <span className="mr-1 text-[10px] font-bold uppercase tracking-wide text-teal-600">
+                                Diploma
+                              </span>
+                              {d.programTitle}
+                              {d.planTitle ? (
+                                <span className="text-slate-500"> · {d.planTitle}</span>
+                              ) : null}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-slate-600">
-                      {s.enrollments[0]
-                        ? new Date(s.enrollments[0].enrolledAt).toLocaleDateString()
+                      {latestEnrollmentDate(s)
+                        ? new Date(latestEnrollmentDate(s)!).toLocaleDateString()
                         : "—"}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => setViewStudent(s)}
+                          onClick={() => openView(s.id)}
                           className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50"
                         >
                           View
                         </button>
                         <button
                           type="button"
-                          onClick={() => openEdit(s)}
-                          className="px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 text-xs font-medium hover:bg-emerald-50"
+                          onClick={() => setResetStudent(s)}
+                          className="px-3 py-1.5 rounded-lg border border-amber-200 text-amber-800 text-xs font-medium hover:bg-amber-50"
                         >
-                          Edit
+                          Password
                         </button>
                         <button
                           type="button"
@@ -247,87 +319,38 @@ export default function StudentsPageClient({ courses }: { courses: Course[] }) {
         </div>
       )}
 
-      {/* View modal */}
-      {viewStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setViewStudent(null)}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h2 className="text-xl font-bold text-slate-900">Student details</h2>
-              <button type="button" onClick={() => setViewStudent(null)} className="p-2 rounded-xl text-slate-500 hover:bg-slate-100">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <div className="overflow-y-auto p-6 space-y-4">
-              <div>
-                <p className="text-xs font-medium text-slate-500">Name</p>
-                <p className="text-slate-900 font-medium">{viewStudent.name || "—"}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500">Email</p>
-                <p className="text-slate-900">{viewStudent.email}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-slate-500 mb-2">Enrollments</p>
-                {viewStudent.enrollments.length === 0 ? (
-                  <p className="text-slate-600 text-sm">No enrollments</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {viewStudent.enrollments.map((e) => (
-                      <li key={e.id} className="flex justify-between items-center py-2 border-b border-slate-100 last:border-0">
-                        <span className="font-medium text-slate-900">{e.courseTitle}</span>
-                        <span className="text-xs text-slate-500">{new Date(e.enrolledAt).toLocaleDateString()} · {e.progress}%</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {viewStudentId ? (
+        <StudentDetailModal
+          detail={studentDetail}
+          loading={detailLoading}
+          error={detailError}
+          onClose={closeView}
+          onResetPassword={
+            studentDetail
+              ? () =>
+                  setResetStudent({
+                    id: studentDetail.id,
+                    name: studentDetail.name,
+                    email: studentDetail.email,
+                    createdAt: studentDetail.createdAt,
+                    enrollments: studentDetail.enrollments,
+                    diplomaEnrollments: studentDetail.diplomaEnrollments,
+                  })
+              : undefined
+          }
+        />
+      ) : null}
 
-      {/* Edit modal */}
-      {editStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setEditStudent(null)}>
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-              <h2 className="text-xl font-bold text-slate-900">Edit student</h2>
-              <button type="button" onClick={() => setEditStudent(null)} className="p-2 rounded-xl text-slate-500 hover:bg-slate-100">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                <input
-                  type="email"
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl"
-                />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button type="submit" disabled={saving} className="px-4 py-2.5 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:opacity-50">
-                  {saving ? "Saving..." : "Save"}
-                </button>
-                <button type="button" onClick={() => setEditStudent(null)} className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {resetStudent ? (
+        <StudentResetPasswordModal
+          student={resetStudent}
+          onClose={() => setResetStudent(null)}
+          onSuccess={() => {
+            setResetSuccess(`New password saved for ${resetStudent.name?.trim() || resetStudent.email}.`);
+            setTimeout(() => setResetSuccess(null), 5000);
+          }}
+        />
+      ) : null}
     </>
   );
 }

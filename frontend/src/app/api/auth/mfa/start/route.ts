@@ -3,9 +3,9 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit, rateLimitKeyFromRequest, rateLimitKeyFromString } from "@/lib/rate-limit";
+import { checkRateLimit, rateLimitKeyFromRequest, rateLimitKeyFromString, resetRateLimit } from "@/lib/rate-limit";
 import { createAndSendMfaChallenge } from "@/lib/mfa";
-
+import { ensureAdminAccountForEnvLogin, matchesAdminEnvCredentials } from "@/lib/admin-env";
 const startMfaSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(1, "Password required"),
@@ -18,17 +18,6 @@ function maskEmail(email: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const ipLimit = checkRateLimit(rateLimitKeyFromRequest(request, "mfa-start"), {
-    limit: 10,
-    windowMs: 15 * 60 * 1000,
-  });
-  if (!ipLimit.allowed) {
-    return NextResponse.json(
-      { error: "Too many login attempts. Please try again later." },
-      { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter) } }
-    );
-  }
-
   let body: unknown;
   try {
     body = await request.json();
@@ -43,6 +32,25 @@ export async function POST(request: NextRequest) {
 
   const { password } = parsed.data;
   const email = parsed.data.email.trim().toLowerCase();
+
+  if (matchesAdminEnvCredentials(email, password)) {
+    await ensureAdminAccountForEnvLogin();
+    resetRateLimit(rateLimitKeyFromString(`mfa-start:${email}`));
+    resetRateLimit(rateLimitKeyFromRequest(request, "mfa-start"));
+    return NextResponse.json({ ok: true, mfaRequired: false });
+  }
+
+  const ipLimit = checkRateLimit(rateLimitKeyFromRequest(request, "mfa-start"), {
+    limit: 10,
+    windowMs: 15 * 60 * 1000,
+  });
+  if (!ipLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Please try again later." },
+      { status: 429, headers: { "Retry-After": String(ipLimit.retryAfter) } }
+    );
+  }
+
   const emailLimit = checkRateLimit(rateLimitKeyFromString(`mfa-start:${email}`), {
     limit: 4,
     windowMs: 15 * 60 * 1000,

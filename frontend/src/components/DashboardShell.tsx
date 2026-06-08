@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageSelector from "@/components/LanguageSelector";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import { useTranslation } from "@/components/LanguageProvider";
+import { STUDENT_MOBILE_NAV } from "@/lib/mobile-nav-config";
+import type { TranslationKey } from "@/lib/i18n";
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: "grid" },
-  { href: "/dashboard/courses", label: "My Courses", icon: "book" },
-  { href: "/dashboard/achievements", label: "Achievements", icon: "trophy" },
-  { href: "/dashboard/profile", label: "Profile", icon: "user" },
-  { href: "/dashboard/testimony", label: "Testimony", icon: "quote" },
+const navItems: { href: string; labelKey: TranslationKey; icon: string }[] = [
+  { href: "/dashboard", labelKey: "nav.dashboard", icon: "grid" },
+  { href: "/dashboard/courses", labelKey: "nav.myCourses", icon: "book" },
+  { href: "/dashboard/diploma", labelKey: "nav.diploma", icon: "book" },
+  { href: "/dashboard/achievements", labelKey: "nav.achievements", icon: "trophy" },
+  { href: "/dashboard/profile", labelKey: "nav.profile", icon: "user" },
+  { href: "/dashboard/testimony", labelKey: "nav.testimony", icon: "quote" },
 ];
 
 function NavIcon({ type }: { type: string }) {
@@ -49,9 +55,19 @@ function NavIcon({ type }: { type: string }) {
   return null;
 }
 
-export default function DashboardShell({ children }: { children: React.ReactNode }) {
+type DashboardShellProps = {
+  children: React.ReactNode;
+  userName?: string;
+  userImage?: string | null;
+};
+
+export default function DashboardShell({
+  children,
+  userName,
+  userImage,
+}: DashboardShellProps) {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { t } = useTranslation();
   const [siteName, setSiteName] = useState("Goltech E-Learning");
   const [logoUrl, setLogoUrl] = useState("");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -99,35 +115,42 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       )}
 
       <aside
-        className={`flex flex-col fixed inset-y-0 left-0 w-64 h-screen bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-transform duration-200 ease-out z-50 lg:z-40 overscroll-contain ${
+        className={`flex flex-col fixed inset-y-0 start-0 z-50 h-screen w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-transform duration-200 ease-out lg:z-40 overscroll-contain ${
           mobileNavOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <Link
-          href="/"
-          onClick={closeMobileNav}
-          className="flex items-center gap-3 p-6 border-b border-slate-100 dark:border-slate-800"
-        >
-          {logoUrl ? (
-            <span className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 flex-shrink-0">
-              <img src={logoUrl} alt="" className="w-full h-full object-cover" />
+        <div className="relative z-[60] flex items-start gap-2 overflow-visible border-b border-slate-100 p-6 dark:border-slate-800">
+          <Link
+            href="/"
+            onClick={closeMobileNav}
+            className="flex min-w-0 flex-1 items-center gap-3"
+          >
+            {logoUrl ? (
+              <span className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
+                <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+              </span>
+            ) : (
+              <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-violet-600 text-lg font-bold text-white">
+                {siteName.charAt(0)}
+              </span>
+            )}
+            <span className="truncate text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-slate-100">
+              {siteName.replace(/\s+/g, " ")}
             </span>
-          ) : (
-            <span className="w-10 h-10 rounded-lg bg-violet-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-              {siteName.charAt(0)}
-            </span>
-          )}
-          <span className="font-bold text-slate-800 dark:text-slate-100 text-sm uppercase tracking-wide truncate">{siteName.replace(/\s+/g, " ")}</span>
-        </Link>
+          </Link>
+          <LanguageSelector compact className="shrink-0" />
+        </div>
         <nav className="flex-1 min-h-0 overflow-y-auto p-4 space-y-1">
           {navItems.map((item) => {
             const active =
               (item.href === "/dashboard" && pathname === "/dashboard") ||
               (item.href === "/dashboard/courses" && (pathname === "/dashboard/courses" || pathname.startsWith("/dashboard/courses/"))) ||
-              (item.href !== "/dashboard" && item.href !== "/dashboard/courses" && pathname === item.href);
+              (item.href === "/dashboard/diploma" && pathname.startsWith("/dashboard/diploma")) ||
+              (item.href !== "/dashboard" && item.href !== "/dashboard/courses" && item.href !== "/dashboard/diploma" && pathname === item.href);
+            const label = t(item.labelKey);
             return (
               <Link
-                key={item.label}
+                key={item.href}
                 href={item.href}
                 onClick={closeMobileNav}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
@@ -137,35 +160,35 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 }`}
               >
                 <NavIcon type={item.icon} />
-                {item.label}
+                {label}
               </Link>
             );
           })}
         </nav>
-        <div className="flex-shrink-0 p-4 border-t border-slate-200 dark:border-slate-800">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+        <div className="flex-shrink-0 border-t border-slate-200 p-4 dark:border-slate-800">
+          <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/50">
             <ThemeToggle className="!h-9 !w-9 shrink-0" />
             <Link
               href="/dashboard/profile"
               onClick={closeMobileNav}
               className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center overflow-hidden flex-shrink-0"
             >
-              {session?.user?.image ? (
-                <img src={session.user.image} alt="" className="w-full h-full object-cover" />
+              {userImage ? (
+                <img src={userImage} alt="" className="w-full h-full object-cover" />
               ) : (
                 <span className="text-slate-600 dark:text-slate-200 font-semibold text-sm">
-                  {session?.user?.name?.charAt(0)?.toUpperCase() ?? "S"}
+                  {userName?.charAt(0)?.toUpperCase() ?? "S"}
                 </span>
               )}
             </Link>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{session?.user?.name ?? "Student"}</p>
+              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{userName ?? t("role.student")}</p>
               <button
                 type="button"
                 onClick={() => signOut({ callbackUrl: "/" })}
                 className="text-xs text-slate-500 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 font-medium transition"
               >
-                Log out
+                {t("auth.logout")}
               </button>
             </div>
           </div>
@@ -178,8 +201,8 @@ export default function DashboardShell({ children }: { children: React.ReactNode
           <button
             type="button"
             onClick={() => setMobileNavOpen(true)}
-            className="lg:hidden p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 shrink-0"
-            aria-label="Open navigation menu"
+            className="hidden p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 shrink-0"
+            aria-label={t("common.openMenu")}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -194,14 +217,14 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               </span>
               <input
                 type="search"
-                placeholder="Search for courses, lessons..."
+                placeholder={t("common.searchCoursesLessons")}
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
               />
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             <ThemeToggle className="lg:hidden !h-9 !w-9" />
-            <button type="button" className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Notifications">
+            <button type="button" className="p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label={t("common.notifications")}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
@@ -211,13 +234,23 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               onClick={() => signOut({ callbackUrl: "/" })}
               className="lg:hidden px-2.5 sm:px-3 py-2 rounded-xl border border-red-200 dark:border-red-800/50 text-red-600 dark:text-red-400 font-medium text-xs sm:text-sm hover:bg-red-50 dark:hover:bg-red-950/30 whitespace-nowrap"
             >
-              Log out
+              {t("auth.logout")}
             </button>
           </div>
         </header>
 
-        <main className="flex-1 p-3 sm:p-4 md:p-5 overflow-auto dark:bg-slate-950">{children}</main>
+        <main className="flex-1 p-3 sm:p-4 md:p-5 pb-24 lg:pb-5 overflow-auto dark:bg-slate-950">{children}</main>
       </div>
+
+      <MobileBottomNav
+        homeHref={STUDENT_MOBILE_NAV.homeHref}
+        primary={STUDENT_MOBILE_NAV.primary}
+        trailing={STUDENT_MOBILE_NAV.trailing}
+        accent={STUDENT_MOBILE_NAV.accent}
+        more={STUDENT_MOBILE_NAV.more}
+        showTabLabels
+        onSignOut={() => signOut({ callbackUrl: "/" })}
+      />
     </div>
   );
 }

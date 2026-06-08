@@ -1,67 +1,64 @@
-# Xogta database-kii hore ugu gudub NeonDB (talaabo talaabo)
+# Gudubinta xogta Neon → Neon (database cusub)
 
-## Talaabada 1: Ku dar connection-kii hore ee PostgreSQL
+## Talaabada 1: Neon cusub — Connection string
 
-Fur **`frontend/.env`** oo ku dar qoraalkan (hoos ugu dar, safar cusub):
+1. Fur [Neon Console](https://console.neon.tech) → project **hamud Academy**
+2. **Connect** → **Connection string** → **Show password** → **Copy**
+3. Fur `frontend/.env` oo ku dar:
 
 ```env
-# Database-kii hore (loo isticmaalo kaliya gudubinta xogta)
-OLD_DATABASE_URL="postgresql://postgres:GOLGALGAR%401020@localhost:5432/barosmart?sslmode=disable"
+NEW_DATABASE_URL="postgresql://neondb_owner:PASSWORD@ep-spring-shape-aqgwbqg2-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require"
 ```
 
-- Haddii password-kaaga PostgreSQL ka duwan yahay **GOLGALGAR@1020**, beddel **GOLGALGAR%401020** (oo ku beddel @ sida %40).
-- **Important:** PostgreSQL-ka local (localhost:5432) waa inuu socdaal (running) markaad talaabada 2 sameyso.
+`OLD_DATABASE_URL` waa inuu tilmaamaa database-kii **hore** (lively-rice). Script-ku wuxuu hore u dhigay.
 
 ---
 
-## Talaabada 2: Hubi in NeonDB ay diyaar tahay
-
-Schema (tables) waa inuu hore ugu jiraa Neon (waxaad orodisay `npx prisma db push`).
-
-Haddii aadan sameyn, orodi:
+## Talaabada 2: Orodi gudubinta
 
 ```bash
 cd frontend
-npx prisma db push
+npm run db:migrate-to-neon
+```
+
+Waxa uu sameeyaa:
+- `prisma db push` → tables-ka schema-ga ah target-ka
+- Nuqul dhammaan tables (users, courses, orders, app_configs, iwm.)
+- Hubinta: source vs target row counts
+
+---
+
+## Talaabada 3: Beddel DATABASE_URL
+
+Marka gudubintu dhamaato:
+
+```env
+DATABASE_URL="<isla NEW_DATABASE_URL>"
+```
+
+Vercel → Settings → Environment Variables → beddel `DATABASE_URL` → **Redeploy**
+
+Ka saar (optional):
+```env
+OLD_DATABASE_URL=
+NEW_DATABASE_URL=
 ```
 
 ---
 
-## Talaabada 3: Orodi script-ka gudubinta
-
-Terminal:
+## Hubi xogta ka hor gudubinta
 
 ```bash
-cd frontend
-npx tsx prisma/migrate-data-to-neon.ts
+npm run db:audit
 ```
 
-Waa inaad arki:
-- `✓ Xiriirka database-kii hore (OLD) waa la furan.`
-- `✓ Xiriirka NeonDB (NEW) waa la furan.`
-- Kadib safar kasta: [categories], [users], [courses], … iyo tirada rows la soo guuray.
-- Ugu dambayn: `✓ Dhamaad. Xogta waa lagu soo guuray NeonDB.`
-
 ---
 
-## Talaabada 4: Ka saar OLD_DATABASE_URL (optional)
+## Cillado
 
-Marka gudubinta dhamaato, haddii aad rabto in aad xiriirka hore ka saarto `.env`:
-
-- Fur **`frontend/.env`**
-- Ka saar ama comment-garee safafka **OLD_DATABASE_URL=...**
-
-**DATABASE_URL** (Neon) ha taaban; ha ka saarin.
-
----
-
-## Cillado caam ah
-
-| Cillad | Sabab | Tallaabada |
-|--------|--------|------------|
-| `OLD_DATABASE_URL ma jiro` | Talaabada 1 lama dhamaystiirin | Ku dar OLD_DATABASE_URL .env |
-| `connection refused` / `ECONNREFUSED` | PostgreSQL local ma socdo | Bixi PostgreSQL (WAMP/XAMPP) ka dibna orodi script-ka |
-| `relation "xxx" does not exist` | Neon ma lahan tables | Orodi `npx prisma db push` (talaabada 2) |
-| Duplicate key / conflict | Xog hore ayey Neon ku jirtaa | Script-ku wuxuu isticmaalaa ON CONFLICT DO NOTHING – rows cusub oo kaliya ayaa lagu darayaa |
-
-Markaad dhamaato, website-ka adoo isticmaalaya Neon wuu ku shaqeyn karaa xogtaadii hore.
+| Cillad | Tallaabada |
+|--------|------------|
+| `NEW_DATABASE_URL ma jiro` | Talaabada 1 — ku dar connection string |
+| `Source iyo target isku mid` | OLD ≠ NEW — hubi labada URL |
+| `Connection failed` | Password sax? Neon project socda? |
+| `SKIP — ma jiro target-ka` | Orodi `npm run db:migrate-to-neon` (wuxuu leeyahay `--push-schema`) |

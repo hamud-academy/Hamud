@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import { prisma } from "@/lib/prisma";
 import { getSiteConfig } from "@/lib/site-config";
 import AdminAppShell from "./AdminAppShell";
@@ -27,8 +28,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const logoUrl = siteConfig.logoUrl || "";
 
   return (
-    <AdminAppShell siteName={siteName} logoUrl={logoUrl} userName={userName} userImage={userImage} role={sessionUser?.role}>
-      {children}
-    </AdminAppShell>
+    <LanguageProvider>
+      <AdminAppShell siteName={siteName} logoUrl={logoUrl} userName={userName} userImage={userImage} role={sessionUser?.role}>
+        {children}
+      </AdminAppShell>
+    </LanguageProvider>
   );
 }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/auth";
+import { DEFAULT_SITE_NAME } from "@/lib/default-site";
 import { getSiteConfig, saveSiteConfig } from "@/lib/site-config";
 import { getSiteBranding, upsertSiteBranding } from "@/lib/site-branding";
 import { normalizePublicMediaUrl } from "@/lib/resolve-media-url";
 
-const defaultConfig = { siteName: "BaroSmart", logoUrl: "", accentSuffix: "" };
+const defaultConfig = { siteName: DEFAULT_SITE_NAME, logoUrl: "", accentSuffix: "" };
 
 export async function GET() {
   const session = await auth();

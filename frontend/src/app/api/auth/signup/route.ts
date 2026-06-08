@@ -3,11 +3,15 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, rateLimitKeyFromRequest } from "@/lib/rate-limit";
+import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
 
 const signUpSchema = z.object({
   name: z.string().min(1, "Name required").max(100),
   email: z.string().email("Invalid email"),
-  password: z.string().min(6, "Password must be at least 6 characters").max(100),
+  password: z
+    .string()
+    .max(100)
+    .refine(isStrongPassword, { message: strongPasswordMessage() }),
 });
 
 export async function POST(request: NextRequest) {

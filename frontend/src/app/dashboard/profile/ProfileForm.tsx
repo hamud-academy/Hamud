@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/components/LanguageProvider";
 
 interface Props {
   userId: string;
@@ -16,6 +17,7 @@ export default function ProfileForm({
   currentEmail,
   currentImage,
 }: Props) {
+  const { t } = useTranslation();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -30,15 +32,22 @@ export default function ProfileForm({
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
+  const [avatarSuccess, setAvatarSuccess] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
 
+  useEffect(() => {
+    setImage(currentImage);
+  }, [currentImage]);
+
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setError("");
+    setAvatarError("");
+    setAvatarSuccess("");
     setAvatarLoading(true);
     try {
       const formData = new FormData();
@@ -49,14 +58,14 @@ export default function ProfileForm({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Upload failed");
+        setAvatarError(data.error ?? t("student.uploadFailed"));
         return;
       }
       setImage(data.url ?? image);
-      setSuccess("Profile photo updated.");
+      setAvatarSuccess(t("student.photoUpdated"));
       router.refresh();
     } catch {
-      setError("Connection error");
+      setAvatarError(t("student.connectionError"));
     } finally {
       setAvatarLoading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -79,10 +88,10 @@ export default function ProfileForm({
         setError(data.error ?? "Error");
         return;
       }
-      setSuccess("Profile saved.");
+      setSuccess(t("student.profileSaved"));
       router.refresh();
     } catch {
-      setError("Connection error");
+      setError(t("student.connectionError"));
     } finally {
       setLoading(false);
     }
@@ -93,11 +102,11 @@ export default function ProfileForm({
     setPasswordError("");
     setPasswordSuccess("");
     if (newPassword !== confirmPassword) {
-      setPasswordError("New passwords do not match.");
+      setPasswordError(t("student.passwordsNoMatch"));
       return;
     }
     if (newPassword.length < 6) {
-      setPasswordError("New password must be at least 6 characters.");
+      setPasswordError(t("student.passwordMinLength"));
       return;
     }
     setPasswordLoading(true);
@@ -115,13 +124,13 @@ export default function ProfileForm({
         setPasswordError(data.error ?? "Error");
         return;
       }
-      setPasswordSuccess("Password updated.");
+      setPasswordSuccess(t("student.passwordUpdated"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       router.refresh();
     } catch {
-      setPasswordError("Connection error");
+      setPasswordError(t("student.connectionError"));
     } finally {
       setPasswordLoading(false);
     }
@@ -131,7 +140,13 @@ export default function ProfileForm({
     <div className="space-y-8">
       {/* Profile photo */}
       <section className="bg-white rounded-xl border border-slate-200 p-6">
-        <h2 className="text-sm font-semibold text-slate-900 mb-4">Profile photo</h2>
+        <h2 className="text-sm font-semibold text-slate-900 mb-4">{t("student.profilePhoto")}</h2>
+        {avatarError && (
+          <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm">{avatarError}</div>
+        )}
+        {avatarSuccess && (
+          <div className="mb-4 p-3 rounded-lg bg-emerald-50 text-emerald-700 text-sm">{avatarSuccess}</div>
+        )}
         <div className="flex items-center gap-6">
           <div className="w-24 h-24 rounded-full bg-slate-100 overflow-hidden flex-shrink-0 border-2 border-slate-200">
             {image ? (
@@ -158,16 +173,16 @@ export default function ProfileForm({
               disabled={avatarLoading}
               className="px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-medium text-sm hover:bg-slate-50 disabled:opacity-50 transition"
             >
-              {avatarLoading ? "Uploading..." : "Change photo"}
+              {avatarLoading ? t("student.uploading") : t("student.changePhoto")}
             </button>
-            <p className="text-xs text-slate-500 mt-2">JPEG, PNG, WebP or GIF. Max 50MB.</p>
+            <p className="text-xs text-slate-500 mt-2">{t("student.photoFormats")}</p>
           </div>
         </div>
       </section>
 
       {/* Username & Email */}
       <section className="bg-white rounded-xl border border-slate-200 p-6">
-        <h2 className="text-sm font-semibold text-slate-900 mb-4">Account details</h2>
+        <h2 className="text-sm font-semibold text-slate-900 mb-4">{t("student.accountDetails")}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm">{error}</div>
@@ -176,17 +191,17 @@ export default function ProfileForm({
             <div className="p-3 rounded-lg bg-emerald-50 text-emerald-700 text-sm">{success}</div>
           )}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("student.username")}</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-slate-900 focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500 outline-none transition"
-              placeholder="Your name"
+              placeholder={t("student.yourName")}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("student.email")}</label>
             <input
               type="email"
               value={email}
@@ -200,14 +215,14 @@ export default function ProfileForm({
             disabled={loading}
             className="px-5 py-2.5 rounded-xl bg-violet-600 text-white font-medium text-sm hover:bg-violet-700 disabled:opacity-50 transition"
           >
-            {loading ? "Saving..." : "Save changes"}
+            {loading ? t("student.saving") : t("student.saveChanges")}
           </button>
         </form>
       </section>
 
       {/* Password */}
       <section className="bg-white rounded-xl border border-slate-200 p-6">
-        <h2 className="text-sm font-semibold text-slate-900 mb-4">Change password</h2>
+        <h2 className="text-sm font-semibold text-slate-900 mb-4">{t("student.changePassword")}</h2>
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           {passwordError && (
             <div className="p-3 rounded-lg bg-red-50 text-red-600 text-sm">{passwordError}</div>
@@ -216,7 +231,7 @@ export default function ProfileForm({
             <div className="p-3 rounded-lg bg-emerald-50 text-emerald-700 text-sm">{passwordSuccess}</div>
           )}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Current password</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("student.currentPassword")}</label>
             <input
               type="password"
               value={currentPassword}
@@ -227,7 +242,7 @@ export default function ProfileForm({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">New password</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("student.newPassword")}</label>
             <input
               type="password"
               value={newPassword}
@@ -237,10 +252,10 @@ export default function ProfileForm({
               autoComplete="new-password"
               minLength={6}
             />
-            <p className="text-xs text-slate-500 mt-1">At least 6 characters.</p>
+            <p className="text-xs text-slate-500 mt-1">{t("student.passwordHint")}</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm new password</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t("student.confirmNewPassword")}</label>
             <input
               type="password"
               value={confirmPassword}
@@ -255,7 +270,7 @@ export default function ProfileForm({
             disabled={passwordLoading || !currentPassword || !newPassword || !confirmPassword}
             className="px-5 py-2.5 rounded-xl bg-violet-600 text-white font-medium text-sm hover:bg-violet-700 disabled:opacity-50 transition"
           >
-            {passwordLoading ? "Updating..." : "Update password"}
+            {passwordLoading ? t("student.updating") : t("student.updatePassword")}
           </button>
         </form>
       </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { DEFAULT_SITE_NAME } from "@/lib/default-site";
 
 export default function FavIconForm() {
   const [faviconUrl, setFaviconUrl] = useState("");
@@ -94,7 +95,7 @@ export default function FavIconForm() {
           type="text"
           value={tabTitle}
           onChange={(e) => setTabTitle(e.target.value)}
-          placeholder="e.g. BaroSmart"
+          placeholder={`e.g. ${DEFAULT_SITE_NAME}`}
           className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
         />
         <p className="text-xs text-slate-500 mt-1">Shown in the browser tab next to the favicon.</p>

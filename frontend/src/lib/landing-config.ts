@@ -1,9 +1,6 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { getAppConfig, saveAppConfig } from "@/lib/app-config-store";
 import { resolveMediaUrl } from "@/lib/resolve-media-url";
 
-const CONFIG_PATH = path.join(process.cwd(), "data", "landing-config.json");
 const CONFIG_KEY = "landing-config";
 
 export const defaultLandingConfig = {
@@ -35,14 +32,7 @@ function normalizeLandingConfig(data: Partial<LandingConfig>): LandingConfig {
 export async function getLandingConfig(): Promise<LandingConfig> {
   const dbConfig = await getAppConfig<Partial<LandingConfig>>(CONFIG_KEY);
   if (dbConfig) return normalizeLandingConfig(dbConfig);
-
-  try {
-    const raw = await readFile(CONFIG_PATH, "utf-8");
-    const data = JSON.parse(raw) as Partial<LandingConfig>;
-    return normalizeLandingConfig(data);
-  } catch {
-    return defaultLandingConfig;
-  }
+  return defaultLandingConfig;
 }
 
 export async function saveLandingConfig(config: LandingConfig): Promise<void> {

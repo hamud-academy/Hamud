@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Header from "@/components/Header";
+import { DEFAULT_SITE_NAME } from "@/lib/default-site";
 import LogoutConfirm from "./LogoutConfirm";
 
 export const metadata: Metadata = {
-  title: "Sign out - BaroSmart",
+  title: `Sign out - ${DEFAULT_SITE_NAME}`,
   description: "Confirm sign out of your account",
 };
 

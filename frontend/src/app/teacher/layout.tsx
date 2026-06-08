@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import { prisma } from "@/lib/prisma";
 import { getSiteConfig } from "@/lib/site-config";
 import TeacherAppShell from "./TeacherAppShell";
@@ -27,8 +28,10 @@ export default async function TeacherLayout({ children }: { children: ReactNode 
   const logoUrl = siteConfig.logoUrl || "";
 
   return (
-    <TeacherAppShell siteName={siteName} logoUrl={logoUrl} userName={userName} userImage={userImage}>
-      {children}
-    </TeacherAppShell>
+    <LanguageProvider>
+      <TeacherAppShell siteName={siteName} logoUrl={logoUrl} userName={userName} userImage={userImage}>
+        {children}
+      </TeacherAppShell>
+    </LanguageProvider>
   );
 }

@@ -3,13 +3,19 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
 
 const schema = z.object({
   name: z.string().min(1).optional(),
   image: z.string().url().optional().nullable(),
   email: z.string().email().optional(),
   currentPassword: z.string().optional(),
-  password: z.string().min(6).optional(),
+  password: z
+    .string()
+    .optional()
+    .refine((value) => value === undefined || isStrongPassword(value), {
+      message: strongPasswordMessage(),
+    }),
 });
 
 export async function PATCH(request: NextRequest) {
@@ -28,7 +34,10 @@ export async function PATCH(request: NextRequest) {
 
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid data" },
+      { status: 400 }
+    );
   }
 
   const existing = await prisma.user.findUnique({ where: { id: userId } });
@@ -41,13 +50,14 @@ export async function PATCH(request: NextRequest) {
   if (parsed.data.image !== undefined) data.image = parsed.data.image;
 
   if (parsed.data.email !== undefined) {
-    if (parsed.data.email !== existing.email) {
-      const taken = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+    const nextEmail = parsed.data.email.trim().toLowerCase();
+    if (nextEmail !== existing.email.toLowerCase()) {
+      const taken = await prisma.user.findUnique({ where: { email: nextEmail } });
       if (taken) {
         return NextResponse.json({ error: "Email already in use" }, { status: 400 });
       }
     }
-    data.email = parsed.data.email;
+    data.email = nextEmail;
   }
 
   if (parsed.data.password !== undefined) {

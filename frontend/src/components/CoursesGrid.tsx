@@ -1,13 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslation } from "@/components/LanguageProvider";
+import { translateCategoryName } from "@/lib/i18n";
 
 interface Course {
   id: string;
   title: string;
   slug: string;
   thumbnail: string | null;
-  price: unknown;
-  originalPrice: unknown;
-  durationHours: unknown;
+  price: number;
+  originalPrice: number | null;
+  durationHours: number | null;
   category: { name: string; slug: string };
   instructor: { name: string | null };
   _count: { enrollments: number };
@@ -17,25 +21,20 @@ interface Props {
   courses: Course[];
 }
 
-function formatDuration(hours: number | null) {
-  if (!hours) return "—";
-  if (hours >= 24) return `${Math.round(hours / 24)} Weeks`;
-  return `${hours}h`;
-}
-
-function formatStudents(count: number) {
-  if (count >= 1000) return `${(count / 1000).toFixed(1)}k Students`;
-  return `${count} Students`;
-}
-
-function num(val: unknown): number {
-  if (typeof val === "number") return val;
-  if (val && typeof val === "object" && "toNumber" in val)
-    return (val as { toNumber: () => number }).toNumber();
-  return Number(val) || 0;
-}
-
 export default function CoursesGrid({ courses }: Props) {
+  const { t, locale } = useTranslation();
+
+  function formatDuration(hours: number | null) {
+    if (!hours) return "—";
+    if (hours >= 24) return `${Math.round(hours / 24)} ${t("common.weeks")}`;
+    return `${hours}${t("common.hours")}`;
+  }
+
+  function formatStudents(count: number) {
+    if (count >= 1000) return t("common.studentsCountK", { count: (count / 1000).toFixed(1) });
+    return t("common.studentsCount", { count });
+  }
+
   if (courses.length === 0) {
     return (
       <div className="text-center py-20 px-6 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/50">
@@ -44,71 +43,59 @@ export default function CoursesGrid({ courses }: Props) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
-        <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">No courses found.</p>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">Try another filter or search term.</p>
+        <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">{t("courses.noResults")}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">{t("courses.tryFilter")}</p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 min-[420px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-      {courses.map((course) => (
-        <Link
-          key={course.id}
-          href={`/courses/${course.slug}`}
-          className="group bg-white dark:bg-slate-900/70 rounded-2xl sm:rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-700 shadow-[0_2px_16px_-4px_rgba(0,0,0,0.08)] dark:shadow-slate-950/50 hover:shadow-[0_20px_40px_-12px_rgba(37,99,235,0.15)] hover:border-blue-200/60 dark:hover:border-blue-700/60 transition-all duration-300 block hover:-translate-y-1"
-        >
-          <div className="aspect-video bg-gradient-to-br from-slate-100 via-blue-50 to-indigo-100 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 flex items-center justify-center overflow-hidden relative">
-            {course.thumbnail ? (
-              <img
-                src={course.thumbnail}
-                alt={course.title}
-                className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-              />
-            ) : (
-              <span className="text-3xl sm:text-4xl font-bold bg-gradient-to-br from-blue-500 to-indigo-600 bg-clip-text text-transparent font-mono tracking-tight">
-                {course.category.slug.slice(0, 2).toUpperCase()}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+      {courses.map((course) => {
+        const categoryLabel = translateCategoryName(locale, course.category.slug, course.category.name);
+        return (
+          <article
+            key={course.id}
+            className="group flex flex-col rounded-2xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-900/60 shadow-sm overflow-hidden hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition"
+          >
+            <Link href={`/courses/${course.slug}`} className="block aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden">
+              {course.thumbnail ? (
+                <img src={course.thumbnail} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-blue-400 uppercase">
+                  {course.category.slug.slice(0, 2)}
+                </div>
+              )}
+            </Link>
+            <div className="p-5 flex flex-col flex-1">
+              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-lg w-fit">
+                {categoryLabel.toUpperCase()}
               </span>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          </div>
-          <div className="p-4 sm:p-5">
-            <span className="inline-flex text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/50 px-2.5 py-1 rounded-full border border-blue-100/80 dark:border-blue-900/50">
-              {course.category.name}
-            </span>
-            <div className="flex gap-2 mt-3 text-xs font-medium text-slate-500 dark:text-slate-400">
-              <span>{formatDuration(num(course.durationHours) || null)}</span>
-              <span className="text-slate-300 dark:text-slate-600">•</span>
-              <span>{formatStudents(course._count.enrollments)}</span>
-            </div>
-            <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white mt-2 line-clamp-2 leading-snug group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
-              {course.title}
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 flex items-center gap-2">
-              <span className="w-7 h-7 rounded-full bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-600 dark:to-slate-700 border border-slate-200/80 dark:border-slate-600 flex-shrink-0" />
-              <span className="truncate font-medium">{course.instructor.name ?? "Unknown"}</span>
-            </p>
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-              <div className="flex items-baseline gap-2">
-                <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tabular-nums">
-                  ${num(course.price).toFixed(2)}
-                </span>
-                {num(course.originalPrice) > 0 && (
-                  <span className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 line-through tabular-nums">
-                    ${num(course.originalPrice).toFixed(2)}
-                  </span>
-                )}
+              <div className="flex gap-2 mt-2 text-xs text-slate-500 dark:text-slate-400">
+                <span>{formatDuration(course.durationHours)}</span>
+                <span>•</span>
+                <span>{formatStudents(course._count.enrollments)}</span>
               </div>
-              <span className="inline-flex items-center gap-1 px-3.5 py-2 rounded-xl bg-[#1447E6] text-white text-sm font-semibold shadow-md shadow-[rgba(20,71,230,0.25)] group-hover:bg-[#0F35AD] group-hover:shadow-lg group-hover:shadow-[rgba(20,71,230,0.3)] transition">
-                View
-                <svg className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </span>
+              <h2 className="font-bold text-lg text-slate-900 dark:text-white mt-2 line-clamp-2 group-hover:text-blue-600 transition">
+                <Link href={`/courses/${course.slug}`}>{course.title}</Link>
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 flex items-center gap-2">
+                <span className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-600 shrink-0" />
+                <span className="truncate font-medium">{course.instructor.name ?? t("common.unknown")}</span>
+              </p>
+              <div className="mt-auto pt-4 flex items-center justify-between">
+                <span className="text-lg font-bold text-slate-900 dark:text-white ltr-only">${course.price.toFixed(2)}</span>
+                <Link
+                  href={`/courses/${course.slug}`}
+                  className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  {t("common.viewCourse")} →
+                </Link>
+              </div>
             </div>
-          </div>
-        </Link>
-      ))}
+          </article>
+        );
+      })}
     </div>
   );
 }

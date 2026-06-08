@@ -1,8 +1,5 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { getAppConfig, saveAppConfig } from "@/lib/app-config-store";
 
-const CONFIG_PATH = path.join(process.cwd(), "data", "contact-config.json");
 const CONFIG_KEY = "contact-config";
 
 export type ContactPhone = { id: string; number: string; callbackLabel: string };
@@ -62,14 +59,7 @@ function parseList<T>(saved: unknown, defaultList: T[]): T[] {
 export async function getContactConfig(): Promise<ContactConfig> {
   const dbConfig = await getAppConfig<Partial<ContactConfig>>(CONFIG_KEY);
   if (dbConfig) return normalizeContactConfig(dbConfig);
-
-  try {
-    const raw = await readFile(CONFIG_PATH, "utf-8");
-    const data = JSON.parse(raw) as Partial<ContactConfig>;
-    return normalizeContactConfig(data);
-  } catch {
-    return defaultContactConfig;
-  }
+  return defaultContactConfig;
 }
 
 export function normalizeContactConfig(data: Partial<ContactConfig>): ContactConfig {

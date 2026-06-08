@@ -100,7 +100,7 @@ export default async function AdminDashboardPage() {
     if (level in levelCounts) (levelCounts as Record<string, number>)[level]++;
   });
   const totalForLevels = Object.values(levelCounts).reduce((a, b) => a + b, 0) || 1;
-  const levelColors = { BEGINNER: "#3b82f6", INTERMEDIATE: "#e2e8f0", ADVANCED: "#64748b" };
+  const levelColors = { BEGINNER: "#2EB641", INTERMEDIATE: "#e2e8f0", ADVANCED: "#64748b" };
   const studentDistribution = [
     { name: "Beginner", value: levelCounts.BEGINNER, percent: Math.round((levelCounts.BEGINNER / totalForLevels) * 100), color: levelColors.BEGINNER },
     { name: "Intermediate", value: levelCounts.INTERMEDIATE, percent: Math.round((levelCounts.INTERMEDIATE / totalForLevels) * 100), color: levelColors.INTERMEDIATE },

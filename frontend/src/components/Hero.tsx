@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/components/LanguageProvider";
 
 const defaultConfig = {
   heroImageUrl: "",
@@ -16,13 +17,15 @@ const defaultConfig = {
 export default function Hero() {
   const [searchQuery, setSearchQuery] = useState("");
   const [config, setConfig] = useState(defaultConfig);
+  const { t, locale } = useTranslation();
 
   useEffect(() => {
+    if (locale !== "en") return;
     fetch("/api/landing-config")
       .then((r) => r.json())
       .then((data) => setConfig({ ...defaultConfig, ...data }))
       .catch(() => {});
-  }, []);
+  }, [locale]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +34,19 @@ export default function Hero() {
     else window.location.href = "/courses";
   };
 
-  const { heroTagline, heroHeading, heroHeadingHighlight, heroDescription, heroStudentCountText, heroImageUrl, studentCount, studentProfiles } = config;
+  const { heroImageUrl, studentCount, studentProfiles } = config;
+
+  const heroTagline = locale === "en" ? config.heroTagline : t("landing.heroTagline");
+  const heroHeading = locale === "en" ? config.heroHeading : t("landing.heroHeading");
+  const heroHeadingHighlight =
+    locale === "en" ? config.heroHeadingHighlight : t("landing.heroHeadingHighlight");
+  const heroDescription = locale === "en" ? config.heroDescription : t("landing.heroDescription");
+  const heroStudentCountText =
+    locale === "en" ? config.heroStudentCountText : t("landing.heroStudentCountFallback");
+
   const displayStudentText =
     typeof studentCount === "number" && studentCount >= 0
-      ? `Join ${studentCount.toLocaleString()}+ active students`
+      ? t("landing.activeStudents", { count: studentCount })
       : heroStudentCountText;
   const highlightIdx = heroHeadingHighlight && heroHeading.includes(heroHeadingHighlight)
     ? heroHeading.indexOf(heroHeadingHighlight)
@@ -81,7 +93,7 @@ export default function Hero() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for courses (e.g. Coding, Design)"
+                    placeholder={t("landing.searchPlaceholder")}
                     className="min-w-0 flex-1 border-0 bg-transparent px-4 py-4 text-sm font-medium text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-0 dark:text-slate-100 dark:placeholder-slate-500"
                   />
                 </div>
@@ -89,7 +101,7 @@ export default function Hero() {
                   type="submit"
                   className="inline-flex min-h-14 items-center justify-center bg-blue-600 px-7 text-sm font-bold text-white transition hover:bg-blue-700"
                 >
-                  Search
+                  {t("common.search")}
                 </button>
               </div>
             </form>
@@ -150,7 +162,7 @@ export default function Hero() {
                     </svg>
                   </span>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">Success Rate</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-700 dark:text-emerald-300">{t("landing.successRate")}</p>
                     <p className="text-sm font-extrabold text-slate-900 dark:text-white">98.5%</p>
                   </div>
                 </div>
@@ -162,7 +174,7 @@ export default function Hero() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18s-3.332.477-4.5 1.253" />
                     </svg>
                   </span>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.08em]">Quality Courses</span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.08em]">{t("landing.qualityCourses")}</span>
                 </div>
               </div>
             </div>

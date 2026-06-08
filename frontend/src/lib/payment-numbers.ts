@@ -12,10 +12,10 @@ export type PaymentNumber = {
 };
 
 export const defaultPaymentNumbers: PaymentNumber[] = [
-  { id: "edahab", icon: "🇸🇴", label: "eDahab", value: "*110*625070785*$$$$$$$#", note: "", iconSize: 22 },
-  { id: "evc", icon: "🇸🇴", label: "EVC+", value: "*712*615070785*$$$$$$$#", note: "", iconSize: 22 },
-  { id: "zaad", icon: "🇸🇴", label: "ZAAD", value: "*880*0615070785*$$$$$$$#", note: "", iconSize: 22 },
-  { id: "sahal", icon: "🇸🇴", label: "SAHAL", value: "*883*0615070785*$$$$$$$#", note: "", iconSize: 22 },
+  { id: "edahab", icon: "🇸🇴", label: "eDahab", value: "*110*625070785*$$$$$$$#", note: "Hormuud / eDahab", iconSize: 22 },
+  { id: "evc", icon: "🇸🇴", label: "EVC+ (Hormuud)", value: "*712*615070785*$$$$$$$#", note: "Hormuud", iconSize: 22 },
+  { id: "zaad", icon: "🇸🇴", label: "ZAAD (Telesom)", value: "*880*0615070785*$$$$$$$#", note: "Telesom", iconSize: 22 },
+  { id: "sahal", icon: "🇸🇴", label: "SAHAL / Golis", value: "*883*0615070785*$$$$$$$#", note: "Golis / Sahal", iconSize: 22 },
   { id: "waafi", icon: "🇩🇯", label: "WAAFI APP (DJIBOUTI) WALLET NUMBER", value: "0615070785", note: "", iconSize: 22 },
   { id: "ebirr", icon: "🇪🇹", label: "eBirr", value: "+251915919901", note: "Wajaale Exchange Rate.", iconSize: 22 },
   { id: "mpesa", icon: "🇰🇪", label: "MPESA", value: "+254712868567", note: "", iconSize: 22 },

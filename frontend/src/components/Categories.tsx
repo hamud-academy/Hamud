@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { translateCategoryName } from "@/lib/i18n";
+import { getServerTranslator } from "@/lib/i18n/server-locale";
 
 const slugToIcon: Record<string, { icon: React.ReactNode; color: string }> = {
   coding: {
@@ -68,8 +70,17 @@ const getCategories = unstable_cache(async () => {
   });
 }, ["home-categories"], { revalidate: 300 });
 
+const fallbackCategories = [
+  { name: "Coding", slug: "coding" },
+  { name: "Design", slug: "design" },
+  { name: "Business", slug: "business" },
+  { name: "Languages", slug: "languages" },
+  { name: "Photography", slug: "photography" },
+];
+
 export default async function Categories() {
   const categories = await getCategories();
+  const { locale, t } = await getServerTranslator();
 
   return (
     <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-slate-50/50 dark:bg-slate-900/40">
@@ -77,10 +88,10 @@ export default async function Categories() {
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 sm:mb-10">
           <div>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 dark:text-white">
-              Most Popular Categories
+              {t("landing.categoriesTitle")}
             </h2>
             <p className="text-slate-600 dark:text-slate-300 mt-2 text-sm sm:text-base max-w-xl">
-              Explore the categories we offer to start learning the skills suitable for your future.
+              {t("landing.categoriesSubtitle")}
             </p>
           </div>
         </div>
@@ -89,6 +100,7 @@ export default async function Categories() {
           {categories.map((cat) => {
             const { icon, color } = getIcon(cat.slug);
             const count = cat._count.courses;
+            const name = translateCategoryName(locale, cat.slug, cat.name);
             return (
               <Link
                 key={cat.id}
@@ -99,10 +111,10 @@ export default async function Categories() {
                   {icon}
                 </div>
                 <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
-                  {cat.name}
+                  {name}
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-                  {count}+ Courses
+                  {t("common.coursesCount", { count })}
                 </p>
               </Link>
             );
@@ -111,14 +123,9 @@ export default async function Categories() {
 
         {categories.length === 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {[
-              { name: "Coding", slug: "coding" },
-              { name: "Design", slug: "design" },
-              { name: "Business", slug: "business" },
-              { name: "Languages", slug: "languages" },
-              { name: "Photography", slug: "photography" },
-            ].map((cat) => {
+            {fallbackCategories.map((cat) => {
               const { icon, color } = getIcon(cat.slug);
+              const name = translateCategoryName(locale, cat.slug, cat.name);
               return (
                 <Link
                   key={cat.slug}
@@ -128,8 +135,8 @@ export default async function Categories() {
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color}`}>
                     {icon}
                   </div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">{cat.name}</h3>
-                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">0+ Courses</p>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">{name}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{t("common.coursesCount", { count: 0 })}</p>
                 </Link>
               );
             })}

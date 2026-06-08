@@ -11,7 +11,7 @@ import {
   Cell,
 } from "recharts";
 
-const BAR_BLUE = "#3b82f6";
+const BAR_BLUE = "#2EB641";
 
 type Props = {
   totalRevenue: number;

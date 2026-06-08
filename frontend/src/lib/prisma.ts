@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { getDatabaseUrl } from "@/lib/db-url";
 
-const connectionString = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/barosmart";
+const connectionString = getDatabaseUrl();
 const adapter = new PrismaPg({ connectionString });
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };

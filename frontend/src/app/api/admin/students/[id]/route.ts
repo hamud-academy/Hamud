@@ -1,11 +1,16 @@
+import { OrderKind, OrderStatus } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { buildStudentDiplomaEnrollments } from "@/lib/admin-student-enrollments";
+import { getDiplomaConfig } from "@/lib/diploma-config";
+import { getDiplomaEnrollments } from "@/lib/diploma-enrollments";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
 
-const updateSchema = z.object({
-  name: z.string().min(1).optional(),
-  email: z.string().email().optional(),
+const resetPasswordSchema = z.object({
+  password: z.string().refine(isStrongPassword, { message: strongPasswordMessage() }),
 });
 
 export async function GET(
@@ -19,6 +24,7 @@ export async function GET(
   }
 
   const { id } = await params;
+
   const student = await prisma.user.findFirst({
     where: { id, role: "STUDENT" },
     include: {
@@ -35,11 +41,70 @@ export async function GET(
     return NextResponse.json({ error: "Student not found" }, { status: 404 });
   }
 
+  const studentEmail = student.email.trim().toLowerCase();
+
+  const [diplomaEnrollments, diplomaConfig, paidDiplomaOrders, orders] = await Promise.all([
+    getDiplomaEnrollments(),
+    getDiplomaConfig(),
+    prisma.order.findMany({
+      where: { kind: OrderKind.DIPLOMA, status: OrderStatus.PAID },
+      select: {
+        id: true,
+        userId: true,
+        email: true,
+        programId: true,
+        programTitle: true,
+        programSlug: true,
+        planType: true,
+        planTitle: true,
+        paidAt: true,
+        createdAt: true,
+      },
+    }),
+    prisma.order.findMany({
+      where: {
+        OR: [{ userId: student.id }, { email: studentEmail }],
+      },
+      include: {
+        course: { select: { title: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  const programTitleById = new Map(
+    diplomaConfig.programs.map((program) => [program.id, program.title])
+  );
+
+  const payments = orders.map((order) => ({
+    id: order.id,
+    kind: order.kind,
+    status: order.status,
+    amount: Number(order.amount),
+    paymentMethod: order.paymentMethod,
+    paymentRef: order.paymentRef,
+    phone: order.phone,
+    itemTitle:
+      order.kind === OrderKind.DIPLOMA
+        ? order.programTitle ?? "Diploma"
+        : order.course?.title ?? "Course",
+    itemSubtitle: order.kind === OrderKind.DIPLOMA ? order.planTitle : null,
+    createdAt: order.createdAt.toISOString(),
+    paidAt: order.paidAt?.toISOString() ?? null,
+  }));
+
+  const paidPayments = payments.filter((p) => p.status === OrderStatus.PAID);
+  const pendingPayments = payments.filter((p) => p.status === OrderStatus.PENDING);
+
+  const whatsappPhone =
+    orders.map((order) => order.phone?.trim()).find((phone) => phone) ?? null;
+
   return NextResponse.json({
     id: student.id,
     name: student.name,
     email: student.email,
     createdAt: student.createdAt.toISOString(),
+    whatsappPhone,
     enrollments: student.enrollments.map((e) => ({
       id: e.id,
       courseId: e.course.id,
@@ -48,6 +113,20 @@ export async function GET(
       enrolledAt: e.enrolledAt.toISOString(),
       progress: e.progress,
     })),
+    diplomaEnrollments: buildStudentDiplomaEnrollments(
+      { id: student.id, email: student.email },
+      diplomaEnrollments,
+      paidDiplomaOrders,
+      programTitleById,
+      diplomaConfig
+    ),
+    payments,
+    paymentSummary: {
+      totalPaid: paidPayments.reduce((sum, p) => sum + p.amount, 0),
+      totalPending: pendingPayments.reduce((sum, p) => sum + p.amount, 0),
+      paidCount: paidPayments.length,
+      pendingCount: pendingPayments.length,
+    },
   });
 }
 
@@ -76,34 +155,20 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const parsed = updateSchema.safeParse(body);
+  const parsed = resetPasswordSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid data" }, { status: 400 });
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid password" },
+      { status: 400 }
+    );
   }
 
-  const data = parsed.data;
-  if (data.email && data.email !== existing.email) {
-    const taken = await prisma.user.findUnique({
-      where: { email: data.email },
-    });
-    if (taken) {
-      return NextResponse.json({ error: "Email already in use" }, { status: 400 });
-    }
-  }
-
-  const updated = await prisma.user.update({
+  await prisma.user.update({
     where: { id },
-    data: {
-      ...(data.name != null && { name: data.name }),
-      ...(data.email != null && { email: data.email }),
-    },
+    data: { passwordHash: await bcrypt.hash(parsed.data.password, 12) },
   });
 
-  return NextResponse.json({
-    id: updated.id,
-    name: updated.name,
-    email: updated.email,
-  });
+  return NextResponse.json({ success: true });
 }
 
 export async function DELETE(

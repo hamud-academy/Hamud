@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { normalizePublicMediaUrl, resolveMediaUrl } from "@/lib/resolve-media-url";
 
@@ -5,7 +6,7 @@ const SETTINGS_ID = "default";
 
 export type SiteBranding = { faviconUrl: string; tabTitle: string };
 
-export async function getSiteBranding(): Promise<SiteBranding> {
+async function loadSiteBranding(): Promise<SiteBranding> {
   try {
     const row = await prisma.siteSettings.findUnique({ where: { id: SETTINGS_ID } });
     return {
@@ -16,6 +17,12 @@ export async function getSiteBranding(): Promise<SiteBranding> {
     return { faviconUrl: "", tabTitle: "" };
   }
 }
+
+export const getSiteBranding = unstable_cache(
+  loadSiteBranding,
+  ["site-branding"],
+  { revalidate: 300, tags: ["site-branding"] }
+);
 
 export async function upsertSiteBranding(partial: { faviconUrl?: string | null; tabTitle?: string | null }) {
   const data: { faviconUrl?: string | null; tabTitle?: string | null } = {};

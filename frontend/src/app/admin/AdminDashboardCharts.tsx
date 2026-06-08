@@ -16,8 +16,8 @@ import {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const BLUE = "#3b82f6";
-const BLUE_LIGHT = "#93c5fd";
+const BLUE = "#2EB641";
+const BLUE_LIGHT = "#B8ECBF";
 const GRAY = "#e2e8f0";
 const GRAY_DARK = "var(--chart-axis)";
 

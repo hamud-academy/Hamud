@@ -135,7 +135,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex h-10 items-center justify-center rounded-xl bg-[#1447E6] px-5 text-sm font-bold text-white shadow-lg shadow-[rgba(20,71,230,0.25)] transition hover:-translate-y-0.5 hover:bg-[#0F35AD] hover:shadow-[rgba(20,71,230,0.35)] disabled:translate-y-0 disabled:opacity-60"
+              className="inline-flex h-10 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-bold text-white shadow-lg shadow-blue-500/25 transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-blue-500/35 disabled:translate-y-0 disabled:opacity-60"
             >
               {isPending ? "..." : "Search"}
             </button>
@@ -158,7 +158,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                 onClick={() => startTransition(() => router.push(buildUrl(params, { category: null, page: null })))}
                 className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
                   !currentCategory
-                    ? "border-transparent bg-[#1447E6] text-white shadow-lg shadow-[rgba(20,71,230,0.25)]"
+                    ? "border-transparent bg-blue-600 text-white shadow-lg shadow-blue-500/25"
                     : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
                 }`}
               >
@@ -182,7 +182,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                     onClick={() => startTransition(() => router.push(buildUrl(params, { category: cat.slug, page: null })))}
                     className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
                       active
-                        ? "border-transparent bg-[#1447E6] text-white shadow-lg shadow-[rgba(20,71,230,0.25)]"
+                        ? "border-transparent bg-blue-600 text-white shadow-lg shadow-blue-500/25"
                         : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
                     }`}
                   >
@@ -222,7 +222,7 @@ export default function CoursesFilters({ categories, currentCategory, currentLev
                     }
                     className={`rounded-xl border px-2.5 py-2 text-left transition-all ${
                       selected
-                        ? "border-transparent bg-[#1447E6] text-white shadow-lg shadow-[rgba(20,71,230,0.25)]"
+                        ? "border-transparent bg-blue-600 text-white shadow-lg shadow-blue-500/25"
                         : "border-slate-200 bg-white text-slate-700 shadow-sm hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-blue-800 dark:hover:text-blue-300"
                     }`}
                   >

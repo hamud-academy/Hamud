@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { DEFAULT_SITE_NAME } from "@/lib/default-site";
 
 export default function ChangeNameForm() {
   const [siteName, setSiteName] = useState("");
@@ -13,11 +14,11 @@ export default function ChangeNameForm() {
     fetch("/api/admin/site-config")
       .then((r) => r.json())
       .then((data) => {
-        setSiteName(data.siteName ?? "BaroSmart");
+        setSiteName(data.siteName ?? DEFAULT_SITE_NAME);
         setAccentSuffix(data.accentSuffix ?? "");
       })
       .catch(() => {
-        setSiteName("BaroSmart");
+        setSiteName(DEFAULT_SITE_NAME);
         setAccentSuffix("");
       })
       .finally(() => setLoading(false));
@@ -32,7 +33,7 @@ export default function ChangeNameForm() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          siteName: siteName.trim() || "BaroSmart",
+          siteName: siteName.trim() || DEFAULT_SITE_NAME,
           accentSuffix: accentSuffix.trim(),
         }),
       });
@@ -73,7 +74,7 @@ export default function ChangeNameForm() {
           type="text"
           value={siteName}
           onChange={(e) => setSiteName(e.target.value)}
-          placeholder="BaroSmart"
+          placeholder={DEFAULT_SITE_NAME}
           className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
         />
       </div>
@@ -89,7 +90,7 @@ export default function ChangeNameForm() {
           placeholder="e.g. Smart (shown in green)"
           className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
         />
-        <p className="text-xs text-slate-500 mt-1">Part of the name to show in accent color (e.g. Baro<strong>Smart</strong>).</p>
+        <p className="text-xs text-slate-500 mt-1">Part of the name to show in accent color (for example, the last word of your brand name).</p>
       </div>
       <button
         type="submit"

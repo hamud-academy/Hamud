@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/prisma";
+import { denyOrderById } from "@/lib/admin-order-actions";
 
 export async function PATCH(
   _request: NextRequest,
@@ -13,25 +14,12 @@ export async function PATCH(
   }
 
   const { id: orderId } = await params;
+  const result = await denyOrderById(orderId);
 
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-  });
-
-  if (!order) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
   }
 
-  if (order.status !== "PENDING") {
-    return NextResponse.json(
-      { error: "This order was already approved or denied" },
-      { status: 400 }
-    );
-  }
-
-  await prisma.order.delete({
-    where: { id: orderId },
-  });
-
+  revalidatePath("/admin/requests");
   return NextResponse.json({ success: true });
 }

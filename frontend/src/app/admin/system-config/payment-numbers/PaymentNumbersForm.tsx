@@ -187,14 +187,17 @@ export default function PaymentNumbersForm() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold text-slate-600">Number / code</label>
+                <label className="mb-1 block text-xs font-semibold text-slate-600">Number / USSD code</label>
                 <input
                   type="text"
                   value={item.value}
                   onChange={(e) => updateNumber(item.id, { value: e.target.value })}
                   className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                  placeholder="+252..."
+                  placeholder="*883*7395973*$$$$$$$#"
                 />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Use $$$$$$$ where the checkout amount should appear (e.g. *883*7395973*$$$$$$$# → *883*7395973*50#).
+                </p>
               </div>
             </div>
 

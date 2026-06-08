@@ -36,6 +36,7 @@ export default async function AdminCoursesPage() {
     price: Number(c.price),
     published: c.published,
     category: c.category,
+    instructorId: c.instructorId,
     instructor: c.instructor,
     _count: c._count,
   }));

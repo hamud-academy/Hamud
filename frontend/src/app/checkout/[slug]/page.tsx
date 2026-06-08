@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import CheckoutForm from "@/components/CheckoutForm";
 import { getPaymentNumbers } from "@/lib/payment-numbers";
+import { getPaymentGatewayPublicConfig } from "@/lib/payment-gateway-config";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -11,6 +12,7 @@ interface Props {
 
 export default async function CheckoutPage({ params }: Props) {
   const { slug } = await params;
+
   const course = await prisma.course.findUnique({
     where: { slug, published: true },
     include: { category: { select: { name: true } }, instructor: { select: { name: true } } },
@@ -19,20 +21,20 @@ export default async function CheckoutPage({ params }: Props) {
   if (!course) notFound();
 
   const price = Number(course.price);
-  const [totalLessons, moduleCount, paymentNumbers] = await Promise.all([
+  const [totalLessons, moduleCount, paymentNumbers, paymentGateway] = await Promise.all([
     prisma.lesson.count({ where: { module: { courseId: course.id } } }),
     prisma.module.count({ where: { courseId: course.id } }),
     getPaymentNumbers(),
+    Promise.resolve(getPaymentGatewayPublicConfig()),
   ]);
 
   return (
     <>
       <Header />
-      <main className="min-h-screen pt-14 sm:pt-16 bg-gray-50">
+      <main className="min-h-screen pt-14 sm:pt-16 bg-gray-50 dark:bg-slate-950">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {/* Green success banner - Hurbad style */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg bg-emerald-50 border border-emerald-100 mb-6">
-            <p className="text-sm text-emerald-800 font-medium">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/50 mb-6">
+            <p className="text-sm text-emerald-800 dark:text-emerald-200 font-medium">
               &quot;{course.title}&quot; has been added to your order.
             </p>
             <Link
@@ -43,9 +45,8 @@ export default async function CheckoutPage({ params }: Props) {
             </Link>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Checkout</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-100 mb-4">Checkout</h1>
 
-          {/* Parallel layout: BILLING DETAILS (left) | YOUR ORDER + PAYMENT (right) */}
           <CheckoutForm
             courseId={course.id}
             courseSlug={slug}
@@ -56,11 +57,12 @@ export default async function CheckoutPage({ params }: Props) {
             moduleCount={moduleCount}
             totalLessons={totalLessons}
             paymentNumbers={paymentNumbers}
+            paymentGateway={paymentGateway}
           />
 
           <Link
             href={`/courses/${slug}`}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 hover:border-gray-300 transition mt-6"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-300 font-medium text-sm hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-gray-300 dark:hover:border-slate-600 transition mt-6"
           >
             ← Back to course
           </Link>

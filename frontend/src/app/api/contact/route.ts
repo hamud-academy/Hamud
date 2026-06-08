@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { checkRateLimit, rateLimitKeyFromRequest } from "@/lib/rate-limit";
+
+const contactSchema = z.object({
+  fullName: z.string().trim().min(2, "Name is too short").max(120),
+  email: z.string().trim().email("Invalid email").max(254),
+  message: z.string().trim().min(10, "Message is too short").max(5000),
+});
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,14 +24,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
-    const { fullName, email, message } = body;
-    if (!fullName || !email || !message) {
-      return NextResponse.json({ error: "Full name, email and message are required." }, { status: 400 });
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request" }, { status: 400 });
     }
+
+    const parsed = contactSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
+    }
+
     // Optional: send email via Resend, save to DB, etc.
     return NextResponse.json({ ok: true });
   } catch {
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

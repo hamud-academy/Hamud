@@ -76,6 +76,7 @@ If you did not try to sign in, ignore this email.`,
   });
 
   if (!emailResult.ok) {
+    console.error("[MFA] Email send failed (check Vercel env: SMTP_* or RESEND_*):", emailResult);
     await prisma.mfaChallenge.updateMany({
       where: { userId: user.id, consumedAt: null },
       data: { consumedAt: new Date() },

@@ -3,6 +3,8 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
 
 const MAX_AVATAR_MB = 50;
 
@@ -170,9 +172,10 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
         setEmailMessage({ type: "err", text: data.error ?? "Update failed" });
         return;
       }
-      setEmailMessage({ type: "ok", text: "Email updated." });
+      setEmailMessage({ type: "ok", text: "Email updated. Sign in again with your new email." });
       setEmailOpen(false);
       router.refresh();
+      await signOut({ callbackUrl: "/login" });
     } catch {
       setEmailMessage({ type: "err", text: "Connection error" });
     } finally {
@@ -182,8 +185,8 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
 
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (newPassword.length < 6) {
-      setPasswordMessage({ type: "err", text: "New password must be at least 6 characters." });
+    if (!isStrongPassword(newPassword)) {
+      setPasswordMessage({ type: "err", text: strongPasswordMessage() });
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -221,7 +224,18 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
   return (
     <div className="p-4 sm:p-6 md:p-8 max-w-3xl">
       <h1 className="text-2xl font-bold text-slate-900 mb-2">Profile Settings</h1>
-      <p className="text-slate-600 mb-8">Manage your admin account details.</p>
+      <p className="text-slate-600 mb-6">Manage your admin account details.</p>
+
+      <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-5 py-4 text-sm text-emerald-900">
+        <p className="font-medium">Login credentials</p>
+        <p className="mt-1 text-emerald-800/90">
+          You can change email and password here for day-to-day login.{" "}
+          <strong className="font-semibold">
+            ADMIN_EMAIL and ADMIN_PASSWORD in .env or Vercel always unlock admin access
+          </strong>{" "}
+          as a backend recovery login, even if you use different credentials in the panel.
+        </p>
+      </div>
 
       <div className="space-y-4">
         {/* Photo */}
@@ -454,17 +468,18 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
             />
           </div>
           <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-1">New password (min 6)</label>
+            <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-1">New password</label>
             <input
               id="newPassword"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
               placeholder="••••••••"
             />
+            <p className="mt-1 text-xs text-slate-500">{strongPasswordMessage()}</p>
           </div>
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">Confirm new password</label>

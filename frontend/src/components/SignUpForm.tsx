@@ -70,7 +70,7 @@ export default function SignUpForm() {
       </div>
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-          Password (ugu yaraan 6 xaraf)
+          Password (at least 8 characters with upper, lower, number, symbol)
         </label>
         <input
           id="password"
@@ -78,9 +78,9 @@ export default function SignUpForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={6}
+          minLength={8}
           className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-          placeholder="••••••••"
+          placeholder="Min 8 chars, upper, lower, number, symbol"
         />
       </div>
       <button

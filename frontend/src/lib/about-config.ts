@@ -1,9 +1,6 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { getAppConfig, saveAppConfig } from "@/lib/app-config-store";
 import { resolveMediaUrl } from "@/lib/resolve-media-url";
 
-const CONFIG_PATH = path.join(process.cwd(), "data", "about-config.json");
 const CONFIG_KEY = "about-config";
 
 export type AboutFeature = { title: string; description: string };
@@ -67,14 +64,7 @@ function str(v: unknown): string {
 export async function getAboutConfig(): Promise<AboutConfig> {
   const dbConfig = await getAppConfig<Partial<AboutConfig>>(CONFIG_KEY);
   if (dbConfig) return normalizeAboutConfig(dbConfig);
-
-  try {
-    const raw = await readFile(CONFIG_PATH, "utf-8");
-    const data = JSON.parse(raw) as Partial<AboutConfig>;
-    return normalizeAboutConfig(data);
-  } catch {
-    return defaultAboutConfig;
-  }
+  return defaultAboutConfig;
 }
 
 export function normalizeAboutConfig(data: Partial<AboutConfig>): AboutConfig {

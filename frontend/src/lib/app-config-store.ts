@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 const TABLE_SQL = `
 CREATE TABLE IF NOT EXISTS app_configs (
@@ -13,25 +14,25 @@ async function ensureConfigTable() {
 
 export async function getAppConfig<T>(key: string): Promise<T | null> {
   try {
-    const rows = await prisma.$queryRaw<Array<{ value: unknown }>>`
-      SELECT value
-      FROM app_configs
-      WHERE key = ${key}
-      LIMIT 1
-    `;
-    return rows[0]?.value ? (rows[0].value as T) : null;
-  } catch {
+    await ensureConfigTable();
+    const row = await prisma.appConfig.findUnique({
+      where: { key },
+      select: { value: true },
+    });
+    if (!row?.value) return null;
+    return row.value as T;
+  } catch (error) {
+    console.error(`getAppConfig(${key}) error:`, error);
     return null;
   }
 }
 
 export async function saveAppConfig<T>(key: string, value: T): Promise<void> {
   await ensureConfigTable();
-  await prisma.$executeRaw`
-    INSERT INTO app_configs (key, value, updated_at)
-    VALUES (${key}, ${JSON.stringify(value)}::jsonb, CURRENT_TIMESTAMP)
-    ON CONFLICT (key) DO UPDATE
-    SET value = EXCLUDED.value,
-        updated_at = CURRENT_TIMESTAMP
-  `;
+  const jsonValue = value as Prisma.InputJsonValue;
+  await prisma.appConfig.upsert({
+    where: { key },
+    create: { key, value: jsonValue },
+    update: { value: jsonValue },
+  });
 }

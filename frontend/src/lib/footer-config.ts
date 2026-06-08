@@ -1,8 +1,5 @@
-import { readFile } from "fs/promises";
-import path from "path";
 import { getAppConfig, saveAppConfig } from "@/lib/app-config-store";
 
-const CONFIG_PATH = path.join(process.cwd(), "data", "footer-config.json");
 const CONFIG_KEY = "footer-config";
 
 export type FooterQuickLink = { id: string; label: string; href: string };
@@ -93,14 +90,7 @@ export function normalizeFooterConfig(data: Partial<FooterConfig>): FooterConfig
 export async function getFooterConfig(): Promise<FooterConfig> {
   const dbConfig = await getAppConfig<Partial<FooterConfig>>(CONFIG_KEY);
   if (dbConfig) return normalizeFooterConfig(dbConfig);
-
-  try {
-    const raw = await readFile(CONFIG_PATH, "utf-8");
-    const data = JSON.parse(raw) as Partial<FooterConfig>;
-    return normalizeFooterConfig(data);
-  } catch {
-    return defaultFooterConfig;
-  }
+  return defaultFooterConfig;
 }
 
 export async function saveFooterConfig(config: FooterConfig): Promise<FooterConfig> {

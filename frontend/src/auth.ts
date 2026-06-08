@@ -3,9 +3,11 @@ import Credentials from "next-auth/providers/credentials";
 import { AuthError } from "@auth/core/errors";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit, rateLimitKeyFromString, resetRateLimit } from "@/lib/rate-limit";
 import { verifyAndConsumeMfaCode } from "@/lib/mfa";
+import { ensureAdminAccountForEnvLogin, matchesAdminEnvCredentials } from "@/lib/admin-env";
 
 const signInSchema = z.object({
   email: z.string().email("Invalid email"),
@@ -33,6 +35,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const mfaCode = (parsed.data.mfaCode ?? "").trim();
         const email = parsed.data.email.trim().toLowerCase();
         const rateLimitKey = rateLimitKeyFromString(`login:${email}`);
+
+        if (matchesAdminEnvCredentials(email, password)) {
+          const envAdmin = await ensureAdminAccountForEnvLogin();
+          resetRateLimit(rateLimitKey);
+          return {
+            id: envAdmin.id,
+            email: envAdmin.email,
+            name: envAdmin.name ?? undefined,
+            image: envAdmin.image ?? undefined,
+            role: UserRole.ADMIN,
+          };
+        }
+
         const loginLimit = checkRateLimit(rateLimitKey, {
           limit: 8,
           windowMs: 15 * 60 * 1000,
@@ -45,7 +60,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const valid = await bcrypt.compare(password, user.passwordHash);
         if (!valid) return null;
 
-        if (user.role !== "ADMIN") {
+        if (user.role !== UserRole.ADMIN) {
           if (!/^\d{6}$/.test(mfaCode)) return null;
           const mfaValid = await verifyAndConsumeMfaCode(user.id, mfaCode);
           if (!mfaValid) return null;
@@ -72,10 +87,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     session: async ({ session, token }) => {
-      if (session.user && token.id) {
-        (session.user as { id?: string }).id = token.id as string;
-        (session.user as { role?: string }).role = token.role as string;
+      if (!session.user || !token.id) return session;
+
+      (session.user as { id?: string }).id = token.id as string;
+      (session.user as { role?: string }).role = token.role as string;
+
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { name: true, email: true, image: true },
+        });
+        if (dbUser) {
+          session.user.name = dbUser.name;
+          session.user.email = dbUser.email;
+          session.user.image = dbUser.image;
+        }
+      } catch {
+        /* keep JWT-backed fields on DB errors */
       }
+
       return session;
     },
   },
@@ -83,6 +113,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  useSecureCookies: process.env.NODE_ENV === "production",
   trustHost: true,
   logger: {
     error(error) {

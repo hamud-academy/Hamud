@@ -23,7 +23,19 @@ export default async function TeacherCurriculumPage({ params }: Props) {
       modules: {
         orderBy: { order: "asc" },
         include: {
-          lessons: { orderBy: { order: "asc" } },
+          lessons: {
+            orderBy: { order: "asc" },
+            include: {
+              lessonQuiz: {
+                include: {
+                  questions: {
+                    orderBy: { order: "asc" },
+                    include: { options: { orderBy: { order: "asc" } } },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -44,6 +56,16 @@ export default async function TeacherCurriculumPage({ params }: Props) {
       videoUrl: l.videoUrl,
       documentUrl: l.documentUrl,
       hasQuiz: quizLessonIds.has(l.id),
+      quiz: {
+        questions:
+          l.lessonQuiz?.questions.map((q) => ({
+            prompt: q.prompt,
+            options: q.options.map((o) => ({
+              text: o.text,
+              isCorrect: o.isCorrect,
+            })),
+          })) ?? [],
+      },
       duration: l.duration,
       order: l.order,
     })),

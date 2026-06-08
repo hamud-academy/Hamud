@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "@/components/LanguageProvider";
 
 type TestimonyItem = {
   id: string;
@@ -26,6 +27,7 @@ function StarRating() {
 export default function Testimonials() {
   const [items, setItems] = useState<TestimonyItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetch("/api/testimonies")
@@ -44,36 +46,36 @@ export default function Testimonials() {
     <section className="py-14 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-slate-50/50 dark:bg-slate-900/40">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white text-center mb-3">
-          Testimonials from our Students
+          {t("landing.testimonialsTitle")}
         </h2>
-        <p className="text-slate-600 text-center text-sm sm:text-base max-w-xl mx-auto mb-10 sm:mb-12">
-          See what our students say about the value they get from our platform.
+        <p className="text-slate-600 dark:text-slate-300 text-center text-sm sm:text-base max-w-xl mx-auto mb-10 sm:mb-12">
+          {t("landing.testimonialsSubtitle")}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-          {displayItems.map((t) => (
+          {displayItems.map((item) => (
             <article
-              key={t.id}
+              key={item.id}
               className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 dark:border-slate-700 flex flex-col items-center text-center hover:shadow-md transition duration-200"
             >
               <div className="-mt-14 mb-3 flex justify-center">
                 <span className="w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden border-4 border-white dark:border-slate-700 shadow-lg bg-slate-200 dark:bg-slate-600 flex items-center justify-center">
-                  {t.userImage ? (
-                    <img src={t.userImage} alt="" className="w-full h-full object-cover" />
+                  {item.userImage ? (
+                    <img src={item.userImage} alt="" className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-2xl sm:text-3xl font-bold text-violet-600">
-                      {t.userName.charAt(0).toUpperCase()}
+                      {item.userName.charAt(0).toUpperCase()}
                     </span>
                   )}
                 </span>
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-0.5">
-                {t.userName}
+                {item.userName}
               </h3>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mb-2">{t.title}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-2">{item.title}</p>
               <StarRating />
-              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed text-left">
-                &ldquo;{t.body}&rdquo;
+              <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed text-start">
+                &ldquo;{item.body}&rdquo;
               </p>
             </article>
           ))}

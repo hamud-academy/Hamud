@@ -214,9 +214,10 @@ model Enrollment {
   @@map("enrollments")
 }
 
-// ============ ORDERS (Checkout - lacag bixinta kadib admin u xaqiijiyaa) ============
+// ============ ORDERS (Checkout - courses + diplomas; admin xaqiijiyaa kadib) ============
 model Order {
   id            String      @id @default(cuid())
+  kind          OrderKind   @default(COURSE)
   fullName      String      @map("full_name")
   email         String
   phone         String?
@@ -234,15 +235,28 @@ model Order {
   userId        String?     @map("user_id") // set when admin creates user after payment
   passwordHash  String?     @map("password_hash") // password ardaygu buuxiyay checkout (approve marka la isticmaalo)
 
-  courseId String @map("course_id")
-  course   Course @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  courseId String? @map("course_id")
+  course   Course? @relation(fields: [courseId], references: [id], onDelete: Restrict)
+
+  programId    String? @map("program_id")
+  programSlug  String? @map("program_slug")
+  programTitle String? @map("program_title")
+  planType     String? @map("plan_type")
+  planTitle    String? @map("plan_title")
 
   @@index([status, createdAt])
   @@index([status, paidAt])
+  @@index([kind, status, createdAt])
   @@index([courseId, status])
+  @@index([programId, status])
   @@index([userId])
   @@index([email])
   @@map("orders")
+}
+
+enum OrderKind {
+  COURSE
+  DIPLOMA
 }
 
 enum OrderStatus {

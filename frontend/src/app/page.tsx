@@ -6,7 +6,10 @@ import PopularCourses from "@/components/PopularCourses";
 import WhyChoose from "@/components/WhyChoose";
 import Testimonials from "@/components/Testimonials";
 import CTA from "@/components/CTA";
+import PartnersMarquee from "@/components/PartnersMarquee";
 import Footer from "@/components/Footer";
+
+export const revalidate = 60;
 
 export default function Home() {
   return (
@@ -20,6 +23,7 @@ export default function Home() {
         <WhyChoose />
         <Testimonials />
         <CTA />
+        <PartnersMarquee />
         <Footer />
       </main>
     </>

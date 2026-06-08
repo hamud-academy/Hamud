@@ -4,14 +4,19 @@
   "private": true,
   "scripts": {
     "postinstall": "prisma generate",
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "dev": "next dev",
+    "dev:webpack": "next dev --webpack",
+    "build": "prisma migrate deploy && next build",
+    "build:app": "next build",
     "start": "next start",
     "lint": "eslint",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
+    "db:migrate-to-neon": "tsx prisma/migrate-neon-to-neon.ts --push-schema",
+    "db:audit": "tsx scripts/audit-db.ts",
     "db:normalize-urls": "tsx scripts/normalize-public-urls.ts",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -22,7 +27,7 @@
     "@vercel/blob": "^2.3.3",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.2.4",
-    "next": "16.1.6",
+    "next": "^16.2.7",
     "next-auth": "^5.0.0-beta.30",
     "next-themes": "^0.4.6",
     "nodemailer": "^7.0.7",
@@ -32,7 +37,12 @@
     "react-dom": "19.2.3",
     "recharts": "^3.7.0",
     "resend": "^6.9.2",
+    "server-only": "^0.0.1",
+    "stripe": "^22.2.0",
     "zod": "^4.3.6"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

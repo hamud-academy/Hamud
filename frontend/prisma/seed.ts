@@ -2,12 +2,19 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
+import { getDatabaseUrl } from "../src/lib/db-url";
+import { getAdminEmail, syncAdminAccountFromEnv } from "../src/lib/admin-env";
 
-const connectionString = process.env.DATABASE_URL ?? "postgresql://postgres:postgres@localhost:5432/barosmart";
+const connectionString = getDatabaseUrl();
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED !== "true") {
+    throw new Error(
+      "Refusing to seed production database. Set ALLOW_SEED=true only on a fresh deploy if you intend to seed."
+    );
+  }
   // Clear existing data (optional - for clean seed)
   await prisma.order.deleteMany();
   await prisma.enrollment.deleteMany();
@@ -177,25 +184,33 @@ async function main() {
     },
   });
 
-  // 6. Create admin (login: admin@gmail.com / admin123) - only this admin can access admin pages
-  const adminHash = await bcrypt.hash("admin123", 10);
-  await prisma.user.upsert({
-    where: { email: "admin@gmail.com" },
-    create: {
-      email: "admin@gmail.com",
-      name: "Admin",
-      passwordHash: adminHash,
-      role: "ADMIN",
-    },
-    update: { passwordHash: adminHash, role: "ADMIN" },
-  });
+  // 6. Primary admin — synced from ADMIN_EMAIL + ADMIN_PASSWORD in .env when set
+  const adminSync = await syncAdminAccountFromEnv();
+  if (!adminSync.synced) {
+    const adminEmail = getAdminEmail();
+    const adminPassword =
+      process.env.ADMIN_PASSWORD?.trim() ||
+      process.env.SEED_ADMIN_PASSWORD?.trim() ||
+      "Admin@12345";
+    const adminHash = await bcrypt.hash(adminPassword, 12);
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      create: {
+        email: adminEmail,
+        name: "Admin",
+        passwordHash: adminHash,
+        role: "ADMIN",
+      },
+      update: { passwordHash: adminHash, role: "ADMIN" },
+    });
+  }
 
   console.log("Seed completed successfully!");
   console.log("- Categories:", categories.length);
   console.log("- Instructors:", instructors.length);
   console.log("- Courses: 3 (Web Dev, Data Analysis, UI/UX)");
   console.log("- Demo student:", student.email);
-  console.log("- Admin: admin@gmail.com / admin123");
+  console.log(`- Admin: ${getAdminEmail()} (set ADMIN_PASSWORD in .env to control login)`);
 }
 
 main()

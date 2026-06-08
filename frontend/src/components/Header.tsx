@@ -2,17 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
+import LanguageSelector from "@/components/LanguageSelector";
+import MobileBottomNav from "@/components/MobileBottomNav";
+import { useTranslation } from "@/components/LanguageProvider";
+import { PUBLIC_MOBILE_NAV } from "@/lib/mobile-nav-config";
+import { DEFAULT_SITE_NAME } from "@/lib/default-site";
+import type { TranslationKey } from "@/lib/i18n";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/courses", label: "Courses" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Contact" },
+const navLinks: { href: string; labelKey: TranslationKey }[] = [
+  { href: "/", labelKey: "nav.home" },
+  { href: "/courses", labelKey: "nav.courses" },
+  { href: "/diploma", labelKey: "nav.diploma" },
+  { href: "/about", labelKey: "nav.about" },
+  { href: "/contact", labelKey: "nav.contact" },
 ];
-
-const defaultSiteName = "BaroSmart";
 
 function isNavActive(pathname: string, href: string) {
   if (href === "/") return pathname === "/";
@@ -55,11 +60,14 @@ function BrandName({
 
 export default function Header() {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
-  const [siteName, setSiteName] = useState(defaultSiteName);
+  const [siteName, setSiteName] = useState(DEFAULT_SITE_NAME);
   const [logoUrl, setLogoUrl] = useState("");
   const [accentSuffix, setAccentSuffix] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetch("/api/site-config")
@@ -72,13 +80,26 @@ export default function Header() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (searchOpen) {
+      searchInputRef.current?.focus();
+    }
+  }, [searchOpen]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = searchQuery.trim();
+    setSearchOpen(false);
     window.location.href = q ? `/courses?search=${encodeURIComponent(q)}` : "/courses";
   };
 
+  function closeSearch() {
+    setSearchOpen(false);
+    setSearchQuery("");
+  }
+
   return (
+    <>
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/90 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-950/80 shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[4.25rem] lg:h-[5rem] gap-4">
@@ -110,9 +131,10 @@ export default function Header() {
             className="hidden lg:flex items-center justify-center flex-1"
             aria-label="Main"
           >
-            <div className="flex items-center gap-7">
-              {navLinks.map(({ href, label }) => {
+            <div className="flex items-center gap-5 xl:gap-7">
+              {navLinks.map(({ href, labelKey }) => {
                 const active = isNavActive(pathname, href);
+                const label = t(labelKey);
                 return (
                   <Link
                     key={href}
@@ -131,52 +153,81 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center justify-end gap-2 sm:gap-3 flex-shrink-0">
-            <form
-              onSubmit={handleSearch}
-              className="hidden xl:flex items-center h-11 w-64 rounded-2xl border border-slate-200 bg-slate-100/80 px-4 text-slate-500 shadow-inner shadow-slate-200/50 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-400 dark:shadow-none"
-            >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search courses..."
-                className="min-w-0 flex-1 bg-transparent px-3 text-sm font-medium text-slate-800 placeholder:text-slate-500 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-400"
-              />
-            </form>
+            <div className="relative flex items-center">
+              {searchOpen ? (
+                <form
+                  onSubmit={handleSearch}
+                  className="flex items-center h-10 w-[min(16rem,calc(100vw-8rem))] sm:w-56 rounded-2xl border border-slate-200 bg-white pl-3 pr-1 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    ref={searchInputRef}
+                    type="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={t("common.searchCourses")}
+                    aria-label={t("common.searchCourses")}
+                    className="min-w-0 flex-1 bg-transparent px-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-slate-100"
+                  />
+                  <button
+                    type="button"
+                    onClick={closeSearch}
+                    className="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    aria-label={t("common.closeSearch")}
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setSearchOpen(true)}
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-200/90 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-900 dark:border-slate-600 dark:bg-slate-800/90 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                  aria-label={t("common.searchCourses")}
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
+              )}
+            </div>
 
             <ThemeToggle className="!h-10 !w-10 !rounded-2xl !border-slate-200/90 dark:!border-slate-600 !bg-white dark:!bg-slate-800/90 !shadow-sm" />
+
+            <LanguageSelector />
 
             <div className="hidden sm:flex items-center gap-2">
               <Link
                 href="/login"
                 className="px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white rounded-xl transition"
               >
-                Log in
+                {t("auth.login")}
               </Link>
               <Link
                 href="/signup"
-                className="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-[#1447E6] text-white text-sm font-semibold shadow-lg shadow-[rgba(20,71,230,0.25)] hover:bg-[#0F35AD] transition"
+                className="inline-flex items-center justify-center px-4 sm:px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow-lg shadow-blue-500/25 hover:bg-blue-700 transition"
               >
-                Get Started
+                {t("auth.getStarted")}
               </Link>
             </div>
 
             <div className="flex sm:hidden items-center gap-2">
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-[#1447E6] text-white text-sm font-semibold shadow-md shadow-[rgba(20,71,230,0.25)]"
+                className="inline-flex items-center justify-center px-3 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold shadow-md shadow-blue-500/25"
               >
-                Log in
+                {t("auth.login")}
               </Link>
             </div>
 
             <button
               type="button"
               onClick={() => setMenuOpen(!menuOpen)}
-              className="lg:hidden p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition"
+              className="hidden p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition"
               aria-label="Toggle menu"
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
@@ -201,20 +252,9 @@ export default function Header() {
         >
           <nav className="py-4 border-t border-slate-100 dark:border-slate-800" aria-label="Mobile">
             <div className="flex flex-col gap-1">
-              <form onSubmit={handleSearch} className="mb-3 flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-700 dark:bg-slate-900">
-                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search courses..."
-                  className="min-w-0 flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none dark:text-slate-100"
-                />
-              </form>
-              {navLinks.map(({ href, label }) => {
+              {navLinks.map(({ href, labelKey }) => {
                 const active = isNavActive(pathname, href);
+                const label = t(labelKey);
                 return (
                   <Link
                     key={href}
@@ -235,19 +275,29 @@ export default function Header() {
                 className="px-4 py-3 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-medium text-sm"
                 onClick={() => setMenuOpen(false)}
               >
-                Log in
+                {t("auth.login")}
               </Link>
               <Link
                 href="/signup"
                 className="mx-1 mt-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl text-center text-sm hover:from-blue-500 hover:to-indigo-500 transition shadow-md shadow-blue-500/20"
                 onClick={() => setMenuOpen(false)}
               >
-                Get Started
+                {t("auth.getStarted")}
               </Link>
             </div>
           </nav>
         </div>
       </div>
     </header>
+
+    <MobileBottomNav
+      homeHref={PUBLIC_MOBILE_NAV.homeHref}
+      primary={PUBLIC_MOBILE_NAV.primary}
+      accent={PUBLIC_MOBILE_NAV.accent}
+      more={PUBLIC_MOBILE_NAV.more}
+      showThemeToggle={false}
+      padMainContent
+    />
+    </>
   );
 }

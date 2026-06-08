@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import SocialIcon from "@/components/SocialIcon";
+import { useTranslation } from "@/components/LanguageProvider";
 import type { FooterConfig } from "@/lib/footer-config";
+import { DEFAULT_SITE_NAME } from "@/lib/default-site";
 
-const defaultSiteName = "BaroSmart";
 const defaultFooterConfig: FooterConfig = {
   description: "Learn quality knowledge, anywhere. Join thousands of active students.",
   studentCountDescription: "Learn quality knowledge, anywhere. Join {studentCount}+ active students.",
@@ -73,7 +74,8 @@ function FooterQuickLink({ href, label }: { href: string; label: string }) {
 }
 
 export default function Footer() {
-  const [siteName, setSiteName] = useState(defaultSiteName);
+  const [siteName, setSiteName] = useState(DEFAULT_SITE_NAME);
+  const { t, locale } = useTranslation();
   const [logoUrl, setLogoUrl] = useState("");
   const [accentSuffix, setAccentSuffix] = useState("");
   const [studentCount, setStudentCount] = useState<number | null>(null);
@@ -106,6 +108,17 @@ export default function Footer() {
       .catch(() => {});
   }, []);
 
+  const quickLinkLabel = (id: string, fallback: string) => {
+    const keys: Record<string, "nav.courses" | "nav.about" | "nav.contact" | "auth.login"> = {
+      courses: "nav.courses",
+      about: "nav.about",
+      contact: "nav.contact",
+      login: "auth.login",
+    };
+    const key = keys[id];
+    return key ? t(key) : fallback;
+  };
+
   return (
     <footer className="bg-slate-900 dark:bg-black text-white border-t border-slate-800 dark:border-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
@@ -123,7 +136,11 @@ export default function Footer() {
                 <FooterBrandName siteName={siteName} accentSuffix={accentSuffix} />
               )}
             </Link>
-            <p className="text-slate-400 text-sm leading-relaxed">{formatFooterDescription(footerConfig, studentCount)}</p>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              {locale === "en"
+                ? formatFooterDescription(footerConfig, studentCount)
+                : t("landing.footerDescription")}
+            </p>
             <div className="flex gap-3 mt-5">
               {footerConfig.socialLinks.filter((s) => s.url.trim()).length > 0 ? (
                 footerConfig.socialLinks.filter((s) => s.url.trim()).map((s) => (
@@ -153,11 +170,11 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-white mb-4">{footerConfig.quickLinksTitle}</h4>
+            <h4 className="font-semibold text-white mb-4">{footerConfig.quickLinksTitle || t("footer.quickLinks")}</h4>
             <ul className="space-y-3 text-slate-400 text-sm">
               {footerConfig.quickLinks.map((link) => (
                 <li key={link.id}>
-                  <FooterQuickLink href={link.href} label={link.label} />
+                  <FooterQuickLink href={link.href} label={quickLinkLabel(link.id, link.label)} />
                 </li>
               ))}
             </ul>

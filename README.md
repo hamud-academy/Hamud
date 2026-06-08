@@ -21,36 +21,16 @@ E-learning/
 └── mobile-app/   # React Native (future)
 ```
 
-## Vercel (monorepo)
+## GitHub & Vercel (fudud)
 
-Mashruuca wuxuu leeyahay Next.js gudaha `frontend/`. Marka aad Git ku xidho Vercel:
+Tilmaamo buuxa: **[GITHUB-SETUP.md](./GITHUB-SETUP.md)** (Somali + English).
 
-1. **Settings → Build & Deployment → Root Directory** → ku qor `frontend` → **Save**.
-2. Hubi in **Build Command** uu yahay `npm run build` (ama ha dhigto otomaatig) iyo **Install Command** `npm install`.
-3. Ku dar **Environment Variables** (Production + Preview) — **dhammaan** tusaalaha `frontend/.env.example` (liiska hoose).
-4. **Redeploy** deployment-ka ugu dambeeyay (ama push cusub).
+1. Push GitHub: `git push origin main`
+2. Vercel → Root Directory: **`frontend`**
+3. Ku dar env vars (`frontend/.env.example`)
+4. Deploy
 
-### Liiska environment variables (aan la illoobin)
-
-| Key | Qasab? | Sharaxaad |
-|-----|--------|-----------|
-| `AUTH_SECRET` | Haa | `openssl rand -base64 32` |
-| `AUTH_URL` ama `NEXTAUTH_URL` | Haa | Production: `https://magacaaga.vercel.app` (URL-ka dhabta ah) |
-| `DATABASE_URL` | Haa | Connection string PostgreSQL (Neon, iwm.) |
-| `RESEND_API_KEY` | Ikhtiyaari | Email haddii la isticmaalo |
-| `RESEND_FROM` | Ikhtiyaari | Cinwaanka from (Resend) |
-| `ADMIN_EMAIL` | Ikhtiyaari | Ogeysiinta dalabyada |
-
-**Xusuusin:** `.env` faylka leh sirta **ha gelin Git** — kaliya buuxi qiimayaasha Vercel dashboard; `.env` hay guriga ama dashboard kaliya.
-
-Haddii Root Directory uu ahaado `.` (root repo), build-ku ma helo Next.js saxda ah → waxaad arki kartaa **404 NOT_FOUND** on `*.vercel.app`.
-
-## GitHub & ammaanka `.env`
-
-- **Ha gelin** `frontend/.env` ama `.env.local` Git — sirta way baxdaa.
-- **Wax walba oo deployment u baahan** (magacyada keys-ka) waxaa ku qoran **`frontend/.env.example`** — taasi waa nuqul la wadaago; adigu waxaad ku buuxisaa qiimaha dhabta ah `.env` (local) ama Vercel.
-- Root `.gitignore` iyo `frontend/.gitignore` waxay iska ilaaliyaan `.env` dhabta ah; **`.env.example`** waa la geli karaa.
-- Clone kadib: `cd frontend` → `copy .env.example .env` → buuxi.
+**Ha gelin** `frontend/.env` Git — sirta way baxdaa.
 
 ## Quick Start
 
@@ -66,6 +46,8 @@ npm install
 ```bash
 npm run dev
 ```
+
+Turbopack (degdeg). Haddii dhibaato: `npm run dev:webpack`
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 

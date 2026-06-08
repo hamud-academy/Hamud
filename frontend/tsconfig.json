@@ -30,5 +30,10 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "prisma/migrate-data-to-neon.ts"]
+  "exclude": [
+    "node_modules",
+    "prisma/migrate-data-to-neon.ts",
+    "prisma/migrate-neon-to-neon.ts",
+    "scripts"
+  ]
 }

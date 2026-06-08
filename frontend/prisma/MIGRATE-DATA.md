@@ -46,7 +46,24 @@ NEW_DATABASE_URL=
 
 ---
 
-## Hubi xogta ka hor gudubinta
+## Vercel deploy (ka dib gudubinta Neon)
+
+Haddii database-ka la sameeyay `db push` (ma ahan `migrate deploy`), marka hore **baseline** samee hal mar:
+
+```bash
+cd frontend
+npx prisma migrate resolve --applied 20260412120000_add_site_settings
+npx prisma migrate resolve --applied 20260416120000_add_lesson_document_url
+npx prisma migrate resolve --applied 20260416180000_lesson_quiz
+npx prisma migrate resolve --applied 20260501104500_add_mfa_challenges
+npx prisma migrate resolve --applied 20260531190000_diploma_orders
+npx prisma migrate resolve --applied 20260531200000_fix_diploma_orders_status_enum
+npx prisma migrate resolve --applied 20260601210000_unify_diploma_orders
+```
+
+Vercel **Root Directory** = `frontend`. Build wuxuu isticmaalaa `npm run build:app` (Next.js kaliya).
+
+---
 
 ```bash
 npm run db:audit

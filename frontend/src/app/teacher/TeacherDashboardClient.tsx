@@ -115,7 +115,10 @@ export default function TeacherDashboardClient({
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#64748b" />
                   <YAxis tick={{ fontSize: 12 }} stroke="#64748b" tickFormatter={(v) => `$${v}`} />
                   <Tooltip
-                    formatter={(value: number | undefined) => [`$${value != null ? value.toFixed(2) : "0"}`, "Revenue"]}
+                    formatter={(value) => {
+                      const n = typeof value === "number" ? value : Number(value ?? 0);
+                      return [`$${n.toFixed(2)}`, "Revenue"];
+                    }}
                     contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
                   />
                   <Bar dataKey="revenue" fill={BAR_BLUE} radius={[4, 4, 0, 0]} />
@@ -137,7 +140,10 @@ export default function TeacherDashboardClient({
                   <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#64748b" />
                   <YAxis tick={{ fontSize: 12 }} stroke="#64748b" allowDecimals={false} />
                   <Tooltip
-                    formatter={(value: number | undefined) => [value ?? 0, "Students"]}
+                    formatter={(value) => {
+                      const n = typeof value === "number" ? value : Number(value ?? 0);
+                      return [n, "Students"];
+                    }}
                     contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
                   />
                   <Bar dataKey="students" fill={BAR_BLUE} radius={[4, 4, 0, 0]} />

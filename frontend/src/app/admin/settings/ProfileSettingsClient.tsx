@@ -51,6 +51,85 @@ function Modal({ open, onClose, title, children }: ModalProps) {
   );
 }
 
+function PasswordVisibilityIcon({ hidden }: { hidden: boolean }) {
+  if (hidden) {
+    return (
+      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+        />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+      />
+    </svg>
+  );
+}
+
+type PasswordFieldProps = {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  autoComplete?: string;
+  minLength?: number;
+  helperText?: string;
+};
+
+function PasswordField({
+  id,
+  label,
+  value,
+  onChange,
+  autoComplete,
+  minLength,
+  helperText,
+}: PasswordFieldProps) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-slate-700 mb-1">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required
+          minLength={minLength}
+          autoComplete={autoComplete}
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 pe-11 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
+          placeholder="••••••••"
+        />
+        <button
+          type="button"
+          onClick={() => setVisible((current) => !current)}
+          className="absolute end-3 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 transition hover:text-slate-600"
+          aria-label={visible ? "Hide password" : "Show password"}
+        >
+          <PasswordVisibilityIcon hidden={!visible} />
+        </button>
+      </div>
+      {helperText ? <p className="mt-1 text-xs text-slate-500">{helperText}</p> : null}
+    </div>
+  );
+}
+
 type ProfileSettingsClientProps = {
   user: {
     name: string | null;
@@ -309,7 +388,10 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h3 className="font-semibold text-slate-900">Password</h3>
-              <p className="text-slate-600 mt-0.5">••••••••</p>
+              <p className="text-slate-600 mt-0.5 flex items-center gap-2">
+                <span aria-hidden>••••••••</span>
+                <span className="text-xs text-slate-400">Hidden for security</span>
+              </p>
             </div>
             <button
               type="button"
@@ -455,44 +537,29 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
               {passwordMessage.text}
             </div>
           )}
-          <div>
-            <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 mb-1">Current password</label>
-            <input
-              id="currentPassword"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              required
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
-              placeholder="••••••••"
-            />
-          </div>
-          <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-1">New password</label>
-            <input
-              id="newPassword"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              required
-              minLength={8}
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
-              placeholder="••••••••"
-            />
-            <p className="mt-1 text-xs text-slate-500">{strongPasswordMessage()}</p>
-          </div>
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">Confirm new password</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
-              placeholder="••••••••"
-            />
-          </div>
+          <PasswordField
+            id="currentPassword"
+            label="Current password"
+            value={currentPassword}
+            onChange={setCurrentPassword}
+            autoComplete="current-password"
+          />
+          <PasswordField
+            id="newPassword"
+            label="New password"
+            value={newPassword}
+            onChange={setNewPassword}
+            autoComplete="new-password"
+            minLength={8}
+            helperText={strongPasswordMessage()}
+          />
+          <PasswordField
+            id="confirmPassword"
+            label="Confirm new password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            autoComplete="new-password"
+          />
           <div className="flex gap-3 pt-2">
             <button
               type="button"

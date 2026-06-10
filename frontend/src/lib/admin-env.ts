@@ -9,6 +9,10 @@ import { prisma } from "@/lib/prisma";
 const LEGACY_ADMIN_EMAILS = ["admin@gmail.com"];
 const ENV_PASSWORD_FINGERPRINT_KEY = "admin_env_password_fingerprint";
 
+function isLegacyAdminEmail(email: string): boolean {
+  return LEGACY_ADMIN_EMAILS.includes(email.trim().toLowerCase());
+}
+
 function envPasswordFingerprint(password: string): string {
   return crypto.createHash("sha256").update(password).digest("hex");
 }
@@ -103,6 +107,7 @@ async function demoteDuplicateLegacyAdmins(targetEmail: string, keepUserId: stri
  * Keeps the primary admin aligned with ADMIN_EMAIL (+ optional ADMIN_PASSWORD) from .env / Vercel.
  * - Migrates legacy admin@gmail.com → ADMIN_EMAIL
  * - Updates password from env when ADMIN_PASSWORD is new/changed, on first setup, migration, or ADMIN_FORCE_PASSWORD_RESET=true
+ * - Preserves email/password changed from the admin profile panel (except legacy migration)
  */
 export async function syncAdminAccountFromEnv(): Promise<AdminSyncResult> {
   const targetEmail = getAdminEmail();
@@ -122,7 +127,12 @@ export async function syncAdminAccountFromEnv(): Promise<AdminSyncResult> {
     (await findPrimaryAdmin());
 
   if (!password) {
-    if (admin && admin.email !== targetEmail && admin.role === UserRole.ADMIN) {
+    if (
+      admin &&
+      admin.email !== targetEmail &&
+      admin.role === UserRole.ADMIN &&
+      isLegacyAdminEmail(admin.email)
+    ) {
       admin = await prisma.user.update({
         where: { id: admin.id },
         data: { email: targetEmail, role: UserRole.ADMIN },
@@ -139,7 +149,7 @@ export async function syncAdminAccountFromEnv(): Promise<AdminSyncResult> {
     return { synced: false, reason: "weak password" };
   }
 
-  if (admin && admin.email !== targetEmail) {
+  if (admin && admin.email !== targetEmail && isLegacyAdminEmail(admin.email)) {
     const taken = await prisma.user.findUnique({ where: { email: targetEmail } });
     if (!taken) {
       admin = await prisma.user.update({
@@ -157,10 +167,15 @@ export async function syncAdminAccountFromEnv(): Promise<AdminSyncResult> {
   const envPasswordChanged = !storedFingerprint || storedFingerprint !== fingerprint;
 
   if (existing?.passwordHash && (await bcrypt.compare(password, existing.passwordHash))) {
-    if (existing.role !== UserRole.ADMIN || existing.email !== targetEmail) {
+    const updateData: { role?: UserRole; email?: string } = {};
+    if (existing.role !== UserRole.ADMIN) updateData.role = UserRole.ADMIN;
+    if (existing.email !== targetEmail && isLegacyAdminEmail(existing.email)) {
+      updateData.email = targetEmail;
+    }
+    if (Object.keys(updateData).length > 0) {
       await prisma.user.update({
         where: { id: existing.id },
-        data: { role: UserRole.ADMIN, email: targetEmail },
+        data: updateData,
       });
     }
     if (envPasswordChanged) {
@@ -176,21 +191,23 @@ export async function syncAdminAccountFromEnv(): Promise<AdminSyncResult> {
   }
 
   const passwordHash = await bcrypt.hash(password, 12);
-  const saved = await prisma.user.upsert({
-    where: { email: targetEmail },
-    create: {
-      email: targetEmail,
-      name: existing?.name ?? "Admin",
-      passwordHash,
-      role: UserRole.ADMIN,
-      image: existing?.image ?? null,
-    },
-    update: {
-      passwordHash,
-      role: UserRole.ADMIN,
-      name: existing?.name ?? "Admin",
-    },
-  });
+  const saved = existing
+    ? await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          passwordHash,
+          role: UserRole.ADMIN,
+          name: existing.name ?? "Admin",
+        },
+      })
+    : await prisma.user.create({
+        data: {
+          email: targetEmail,
+          name: "Admin",
+          passwordHash,
+          role: UserRole.ADMIN,
+        },
+      });
 
   await demoteDuplicateLegacyAdmins(targetEmail, saved.id);
   await saveAppConfig(ENV_PASSWORD_FINGERPRINT_KEY, fingerprint);
@@ -221,24 +238,27 @@ export async function ensureAdminAccountForEnvLogin() {
   const passwordHash = await bcrypt.hash(password, 12);
   const fingerprint = envPasswordFingerprint(password);
   const primaryAdmin = await findPrimaryAdmin();
-  const existingAtTarget = await prisma.user.findUnique({ where: { email: targetEmail } });
 
-  const saved = await prisma.user.upsert({
-    where: { email: targetEmail },
-    create: {
-      email: targetEmail,
-      name: existingAtTarget?.name ?? primaryAdmin?.name ?? "Admin",
-      passwordHash,
-      role: UserRole.ADMIN,
-      image: existingAtTarget?.image ?? primaryAdmin?.image ?? null,
-    },
-    update: {
-      passwordHash,
-      role: UserRole.ADMIN,
-    },
-  });
+  const saved = primaryAdmin
+    ? await prisma.user.update({
+        where: { id: primaryAdmin.id },
+        data: { passwordHash, role: UserRole.ADMIN },
+      })
+    : await prisma.user.upsert({
+        where: { email: targetEmail },
+        create: {
+          email: targetEmail,
+          name: "Admin",
+          passwordHash,
+          role: UserRole.ADMIN,
+        },
+        update: {
+          passwordHash,
+          role: UserRole.ADMIN,
+        },
+      });
 
   await saveAppConfig(ENV_PASSWORD_FINGERPRINT_KEY, fingerprint);
-  await demoteDuplicateLegacyAdmins(targetEmail, saved.id);
+  await demoteDuplicateLegacyAdmins(saved.email, saved.id);
   return saved;
 }

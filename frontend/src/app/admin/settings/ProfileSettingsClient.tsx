@@ -229,11 +229,11 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
       <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-5 py-4 text-sm text-emerald-900">
         <p className="font-medium">Login credentials</p>
         <p className="mt-1 text-emerald-800/90">
-          You can change email and password here for day-to-day login.{" "}
-          <strong className="font-semibold">
-            ADMIN_EMAIL and ADMIN_PASSWORD in .env or Vercel always unlock admin access
-          </strong>{" "}
-          as a backend recovery login, even if you use different credentials in the panel.
+          After you change email or password here, sign in with your{" "}
+          <strong className="font-semibold">new email and new password</strong>. They stay active after
+          deploy/restart.{" "}
+          <strong className="font-semibold">ADMIN_EMAIL + ADMIN_PASSWORD</strong> in .env or Vercel remain a
+          separate recovery login (always use the env email address for that).
         </p>
       </div>
 

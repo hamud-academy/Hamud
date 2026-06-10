@@ -128,6 +128,33 @@ export const ADMIN_MOBILE_NAV = {
   ] satisfies MobileNavLink[],
 };
 
+export function isAdminMorePanelActive(pathname: string): boolean {
+  if (!pathname.startsWith("/admin")) return false;
+  if (pathname === "/admin") return false;
+  if (pathname.startsWith("/admin/requests")) return false;
+  if (pathname.startsWith("/admin/courses")) return false;
+  if (pathname.startsWith("/admin/students")) return false;
+  return true;
+}
+
+export function isTeacherMorePanelActive(pathname: string): boolean {
+  if (!pathname.startsWith("/teacher")) return false;
+  if (pathname === "/teacher") return false;
+  if (pathname.startsWith("/teacher/courses")) return false;
+  if (pathname.startsWith("/teacher/diploma")) return false;
+  if (pathname.startsWith("/teacher/students")) return false;
+  return true;
+}
+
+export function isStudentMorePanelActive(pathname: string): boolean {
+  if (!pathname.startsWith("/dashboard")) return false;
+  if (pathname === "/dashboard") return false;
+  if (pathname.startsWith("/dashboard/courses")) return false;
+  if (pathname.startsWith("/dashboard/diploma")) return false;
+  if (pathname.startsWith("/dashboard/profile")) return false;
+  return true;
+}
+
 export function isMobileNavItemActive(pathname: string, item: MobileNavLink) {
   return item.match ? item.match(pathname) : exactOrPrefix(item.href)(pathname);
 }

@@ -159,7 +159,7 @@ export default function TeacherDashboardClient({
           <h2 className="text-lg font-bold text-slate-900">Student progress by course</h2>
           <p className="text-sm text-slate-500 mt-0.5">Average completion % per course</p>
         </div>
-        <div className="overflow-x-auto">
+        <div className="responsive-data-table">
           {progressByCourse.length === 0 ? (
             <p className="px-6 py-12 text-center text-slate-500">No enrollments yet</p>
           ) : (
@@ -174,17 +174,17 @@ export default function TeacherDashboardClient({
               <tbody className="divide-y divide-slate-100">
                 {progressByCourse.map((row) => (
                   <tr key={row.courseId} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-4 font-medium text-slate-900">{row.title}</td>
-                    <td className="px-6 py-4 text-slate-600">{row.enrollments}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 max-w-[140px] h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <td data-label="Course" className="px-6 py-4 font-medium text-slate-900">{row.title}</td>
+                    <td data-label="Enrollments" className="px-6 py-4 text-slate-600">{row.enrollments}</td>
+                    <td data-label="Avg. progress" className="px-6 py-4">
+                      <div className="flex items-center gap-3 max-w-full">
+                        <div className="flex-1 max-w-[140px] h-2 bg-slate-200 rounded-full overflow-hidden min-w-0">
                           <div
                             className="h-full bg-teal-500 rounded-full transition-all"
                             style={{ width: `${row.avgProgress}%` }}
                           />
                         </div>
-                        <span className="text-slate-700 font-medium w-10">{row.avgProgress}%</span>
+                        <span className="text-slate-700 font-medium shrink-0">{row.avgProgress}%</span>
                       </div>
                     </td>
                   </tr>

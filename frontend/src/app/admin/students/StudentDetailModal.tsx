@@ -211,7 +211,7 @@ export default function StudentDetailModal({
                   </div>
                 ) : (
                   <div className="overflow-hidden rounded-2xl border border-slate-200">
-                    <div className="overflow-x-auto">
+                    <div className="responsive-data-table">
                       <table className="w-full text-sm text-left">
                         <thead>
                           <tr className="border-b border-slate-100 bg-slate-50/80">
@@ -235,7 +235,7 @@ export default function StudentDetailModal({
                         <tbody className="divide-y divide-slate-100">
                           {detail.payments.map((payment) => (
                             <tr key={payment.id} className="hover:bg-slate-50/50">
-                              <td className="px-4 py-3">
+                              <td data-label="Order" className="px-4 py-3">
                                 <span
                                   className={`mb-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
                                     payment.kind === "DIPLOMA"
@@ -253,14 +253,14 @@ export default function StudentDetailModal({
                                   <p className="text-xs text-slate-400 mt-0.5">Ref: {payment.paymentRef}</p>
                                 ) : null}
                               </td>
-                              <td className="px-4 py-3 font-semibold text-slate-900">
+                              <td data-label="Amount" className="px-4 py-3 font-semibold text-slate-900">
                                 ${safeAmount(payment.amount)}
                               </td>
-                              <td className="px-4 py-3 text-slate-600">{payment.paymentMethod}</td>
-                              <td className="px-4 py-3">
+                              <td data-label="Method" className="px-4 py-3 text-slate-600">{payment.paymentMethod}</td>
+                              <td data-label="Status" className="px-4 py-3">
                                 <StatusBadge status={payment.status} />
                               </td>
-                              <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
+                              <td data-label="Date" className="px-4 py-3 text-slate-600 whitespace-nowrap">
                                 {formatOrderDate(payment.paidAt ?? payment.createdAt)}
                               </td>
                             </tr>

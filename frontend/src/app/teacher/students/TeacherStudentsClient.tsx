@@ -169,8 +169,8 @@ export default function TeacherStudentsClient({
         </div>
       ) : (
         <>
-          <div className="hidden lg:block bg-white/80 backdrop-blur rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+          <div className="bg-white/80 backdrop-blur rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div className="responsive-data-table">
               <table className="w-full text-sm text-left">
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/50">
@@ -187,7 +187,7 @@ export default function TeacherStudentsClient({
                 <tbody className="divide-y divide-slate-100">
                   {filtered.map((row) => (
                     <tr key={row.enrollmentId} className="hover:bg-slate-50/50 transition">
-                      <td className="px-6 py-4">
+                      <td data-label="Student" className="px-6 py-4">
                         <div className="flex items-center gap-3 min-w-0">
                           <span className="relative w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold text-sm overflow-hidden flex-shrink-0">
                             {row.student.image ? (
@@ -205,30 +205,28 @@ export default function TeacherStudentsClient({
                             )}
                           </span>
                           <div className="min-w-0">
-                            <p className="font-semibold text-slate-900 truncate">
-                              {row.student.name ?? "—"}
-                            </p>
-                            <p className="text-xs text-slate-500 truncate">{row.student.email}</p>
+                            <p className="font-semibold text-slate-900">{row.student.name ?? "—"}</p>
+                            <p className="text-xs text-slate-500 break-all">{row.student.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td data-label="Course" className="px-6 py-4">
                         <p className="font-medium text-slate-800">{row.course.title}</p>
                         <p className="text-xs text-slate-500">{row.course.slug}</p>
                       </td>
-                      <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{formatDate(row.enrolledAt)}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 min-w-[120px]">
-                          <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
+                      <td data-label="Enrolled" className="px-6 py-4 text-slate-600">{formatDate(row.enrolledAt)}</td>
+                      <td data-label="Progress" className="px-6 py-4">
+                        <div className="flex items-center gap-2 max-w-full">
+                          <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden min-w-0">
                             <div
                               className="h-full rounded-full bg-teal-500 transition-all"
                               style={{ width: `${Math.min(100, Math.max(0, row.progress))}%` }}
                             />
                           </div>
-                          <span className="text-xs font-semibold text-slate-700 w-9 text-right">{row.progress}%</span>
+                          <span className="text-xs font-semibold text-slate-700 shrink-0">{row.progress}%</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td data-label="Status" className="px-6 py-4">
                         <span
                           className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold ${
                             row.completed ? "bg-teal-100 text-teal-800" : "bg-slate-100 text-slate-600"
@@ -237,15 +235,17 @@ export default function TeacherStudentsClient({
                           {row.completed ? "Completed" : "In progress"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          type="button"
-                          onClick={() => removeEnrollment(row)}
-                          disabled={removingId === row.enrollmentId}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition disabled:opacity-50"
-                        >
-                          {removingId === row.enrollmentId ? "Removing…" : "Remove"}
-                        </button>
+                      <td data-label="Actions" className="responsive-data-table__actions px-6 py-4 text-right">
+                        <div>
+                          <button
+                            type="button"
+                            onClick={() => removeEnrollment(row)}
+                            disabled={removingId === row.enrollmentId}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-red-600 text-sm font-medium hover:bg-red-50 transition disabled:opacity-50"
+                          >
+                            {removingId === row.enrollmentId ? "Removing…" : "Remove"}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -253,63 +253,6 @@ export default function TeacherStudentsClient({
               </table>
             </div>
           </div>
-
-          <ul className="lg:hidden space-y-3">
-            {filtered.map((row) => (
-              <li
-                key={row.enrollmentId}
-                className="bg-white/80 backdrop-blur rounded-2xl border border-slate-200/80 shadow-sm p-4"
-              >
-                <div className="flex items-start gap-3">
-                  <span className="relative w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-semibold overflow-hidden flex-shrink-0">
-                    {row.student.image ? (
-                      <Image
-                        src={row.student.image}
-                        alt=""
-                        fill
-                        className="object-cover"
-                        unoptimized={row.student.image.startsWith("http") && row.student.image.includes("localhost")}
-                      />
-                    ) : (
-                      (row.student.name ?? row.student.email)[0]?.toUpperCase() ?? "?"
-                    )}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-slate-900">{row.student.name ?? "—"}</p>
-                    <p className="text-sm text-slate-500 break-all">{row.student.email}</p>
-                    <p className="text-sm font-medium text-slate-800 mt-2">{row.course.title}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Enrolled {formatDate(row.enrolledAt)}</p>
-                    <div className="flex items-center gap-2 mt-3">
-                      <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-teal-500"
-                          style={{ width: `${Math.min(100, Math.max(0, row.progress))}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-semibold text-slate-700">{row.progress}%</span>
-                    </div>
-                    <div className="flex items-center justify-between mt-3 gap-2">
-                      <span
-                        className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold ${
-                          row.completed ? "bg-teal-100 text-teal-800" : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        {row.completed ? "Completed" : "In progress"}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => removeEnrollment(row)}
-                        disabled={removingId === row.enrollmentId}
-                        className="text-sm font-medium text-red-600 hover:underline disabled:opacity-50"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
         </>
       )}
     </>

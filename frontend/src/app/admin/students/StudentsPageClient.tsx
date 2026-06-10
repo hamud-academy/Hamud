@@ -159,8 +159,8 @@ export default function StudentsPageClient({
 
       {/* Filters */}
       <div className="mb-6 p-4 rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm">
-        <div className="flex flex-wrap items-end gap-4">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 items-end">
+          <div className="w-full">
             <label className="block text-xs font-medium text-slate-500 mb-1">Course</label>
             <select
               value={courseId}
@@ -168,7 +168,7 @@ export default function StudentsPageClient({
                 setCourseId(e.target.value);
                 if (e.target.value) setProgramId("");
               }}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm min-w-[180px]"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm sm:min-w-[180px]"
             >
               <option value="">All courses</option>
               {courses.map((c) => (
@@ -192,25 +192,25 @@ export default function StudentsPageClient({
               ))}
             </select>
           </div>
-          <div>
+          <div className="w-full">
             <label className="block text-xs font-medium text-slate-500 mb-1">Date from</label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"
             />
           </div>
-          <div>
+          <div className="w-full">
             <label className="block text-xs font-medium text-slate-500 mb-1">Date to</label>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"
             />
           </div>
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full sm:col-span-2 lg:col-span-3 xl:col-span-1">
             <label className="block text-xs font-medium text-slate-500 mb-1">Search (name or email)</label>
             <input
               type="text"
@@ -242,7 +242,7 @@ export default function StudentsPageClient({
         </div>
       ) : (
         <div className="bg-white/80 backdrop-blur rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="responsive-data-table">
             <table className="w-full text-sm text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
@@ -256,9 +256,9 @@ export default function StudentsPageClient({
               <tbody className="divide-y divide-slate-100">
                 {students.map((s) => (
                   <tr key={s.id} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-4 font-medium text-slate-900">{s.name || "—"}</td>
-                    <td className="px-6 py-4 text-slate-700">{s.email}</td>
-                    <td className="px-6 py-4 text-slate-700">
+                    <td data-label="Name" className="px-6 py-4 font-medium text-slate-900">{s.name || "—"}</td>
+                    <td data-label="Email" className="px-6 py-4 text-slate-700 break-all">{s.email}</td>
+                    <td data-label="Courses / Diplomas" className="px-6 py-4 text-slate-700">
                       {!hasAnyEnrollment(s) ? (
                         "—"
                       ) : (
@@ -280,12 +280,12 @@ export default function StudentsPageClient({
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-slate-600">
+                    <td data-label="Enrolled" className="px-6 py-4 text-slate-600">
                       {latestEnrollmentDate(s)
                         ? new Date(latestEnrollmentDate(s)!).toLocaleDateString()
                         : "—"}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td data-label="Actions" className="responsive-data-table__actions px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"

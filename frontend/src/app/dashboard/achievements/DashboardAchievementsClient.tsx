@@ -291,8 +291,8 @@ export default function DashboardAchievementsClient({
                     {t("student.downloadProgramTranscript")}
                   </Link>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[520px] text-sm text-start">
+                <div className="responsive-data-table">
+                  <table className="w-full text-sm text-start">
                     <thead>
                       <tr className="border-b border-slate-100 text-xs font-semibold uppercase tracking-wide text-slate-500">
                         <th className="px-4 py-3">{t("student.transcriptColSubject")}</th>
@@ -305,11 +305,13 @@ export default function DashboardAchievementsClient({
                     <tbody className="divide-y divide-slate-100">
                       {group.entries.map((entry) => (
                         <tr key={`${entry.programId}-${entry.subjectId}`} className="text-slate-700">
-                          <td className="px-4 py-3 font-medium text-slate-900">{entry.subjectTitle}</td>
-                          <td className="px-4 py-3">
+                          <td data-label={t("student.transcriptColSubject")} className="px-4 py-3 font-medium text-slate-900">
+                            {entry.subjectTitle}
+                          </td>
+                          <td data-label={t("student.transcriptColScore")} className="px-4 py-3">
                             <span className="font-bold text-slate-950">{entry.score}%</span>
                           </td>
-                          <td className="px-4 py-3">
+                          <td data-label={t("student.transcriptColResult")} className="px-4 py-3">
                             <span
                               className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                                 entry.passed
@@ -320,10 +322,10 @@ export default function DashboardAchievementsClient({
                               {entry.passed ? t("student.passed") : t("student.failed")}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-slate-600">
+                          <td data-label={t("student.transcriptColCorrect")} className="px-4 py-3 text-slate-600">
                             {entry.correctCount}/{entry.totalQuestions}
                           </td>
-                          <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                          <td data-label={t("student.transcriptColDate")} className="px-4 py-3 text-slate-500">
                             {formatLocaleDate(locale, new Date(entry.submittedAtIso))}
                           </td>
                         </tr>

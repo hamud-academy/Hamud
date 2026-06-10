@@ -248,26 +248,26 @@ export default function AccountsPageClient() {
 
       {/* Filters */}
       <div className="mb-6 p-4 rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm">
-        <div className="flex flex-wrap items-end gap-4">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+          <div className="w-full">
             <label className="block text-xs font-medium text-slate-500 mb-1">Date from</label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"
             />
           </div>
-          <div>
+          <div className="w-full">
             <label className="block text-xs font-medium text-slate-500 mb-1">Date to</label>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="px-3 py-2 border border-slate-200 rounded-xl text-sm"
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm"
             />
           </div>
-          <div className="flex-1 min-w-[200px]">
+          <div className="w-full sm:col-span-2 lg:col-span-1">
             <label className="block text-xs font-medium text-slate-500 mb-1">Search (name or email)</label>
             <input
               type="text"
@@ -293,7 +293,7 @@ export default function AccountsPageClient() {
         </div>
       ) : (
         <div className="bg-white/80 backdrop-blur rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="responsive-data-table">
             <table className="w-full text-sm text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
@@ -307,17 +307,17 @@ export default function AccountsPageClient() {
               <tbody className="divide-y divide-slate-100">
                 {users.map((u) => (
                   <tr key={u.id} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-4 font-medium text-slate-900">{u.name || "—"}</td>
-                    <td className="px-6 py-4 text-slate-700">{u.email}</td>
-                    <td className="px-6 py-4">
+                    <td data-label="Name" className="px-6 py-4 font-medium text-slate-900">{u.name || "—"}</td>
+                    <td data-label="Gmail" className="px-6 py-4 text-slate-700 break-all">{u.email}</td>
+                    <td data-label="Role" className="px-6 py-4">
                       <span className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold ${
                         u.role === "ADMIN" ? "bg-violet-100 text-violet-700" : u.role === "INSTRUCTOR" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
                       }`}>
                         {roleLabel(u.role)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{new Date(u.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-right">
+                    <td data-label="Create date" className="px-6 py-4 text-slate-600">{new Date(u.createdAt).toLocaleDateString()}</td>
+                    <td data-label="Actions" className="responsive-data-table__actions px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button type="button" onClick={() => setViewUser(u)} className="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-700 text-xs font-medium hover:bg-slate-50">View</button>
                         <button type="button" onClick={() => openEdit(u)} className="px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 text-xs font-medium hover:bg-emerald-50">Edit</button>

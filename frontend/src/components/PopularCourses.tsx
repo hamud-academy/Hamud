@@ -56,7 +56,7 @@ export default async function PopularCourses() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 min-[420px]:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 min-[380px]:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {courses.map((course) => {
             const thumb = course.thumbnail
               ? (resolveMediaUrl(course.thumbnail) ?? course.thumbnail)

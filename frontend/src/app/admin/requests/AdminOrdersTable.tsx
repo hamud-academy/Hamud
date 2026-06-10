@@ -38,7 +38,7 @@ export default function AdminOrdersTable({ orders }: { orders: AdminOrderRow[] }
 
   return (
     <div className="bg-white/80 backdrop-blur rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
+      <div className="responsive-data-table">
         <table className="w-full text-sm text-left">
           <thead>
             <tr className="border-b border-slate-100 bg-slate-50/50">
@@ -62,16 +62,16 @@ export default function AdminOrdersTable({ orders }: { orders: AdminOrderRow[] }
           <tbody className="divide-y divide-slate-100">
             {orders.map((order) => (
               <tr key={`${order.kind}-${order.id}`} className="hover:bg-slate-50/50 transition">
-                <td className="px-6 py-4">
+                <td data-label="Applicant" className="px-6 py-4">
                   <div>
                     <p className="font-semibold text-slate-900">{order.fullName}</p>
-                    <p className="text-xs text-slate-500">{order.email}</p>
+                    <p className="text-xs text-slate-500 break-all">{order.email}</p>
                     {order.paymentRef ? (
                       <p className="text-xs text-slate-400 mt-0.5">Ref: {order.paymentRef}</p>
                     ) : null}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-slate-700">
+                <td data-label="Order" className="px-6 py-4 text-slate-700">
                   <div>
                     <span
                       className={`mb-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
@@ -88,12 +88,12 @@ export default function AdminOrdersTable({ orders }: { orders: AdminOrderRow[] }
                     ) : null}
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td data-label="Amount" className="px-6 py-4">
                   <span className="font-semibold text-slate-900">${safeAmount(order.amount)}</span>
                   <span className="text-xs text-slate-500 block">{order.paymentMethod}</span>
                 </td>
-                <td className="px-6 py-4 text-slate-600">{formatOrderDate(order.createdAt)}</td>
-                <td className="px-6 py-4 text-right">
+                <td data-label="Date" className="px-6 py-4 text-slate-600">{formatOrderDate(order.createdAt)}</td>
+                <td data-label="Actions" className="responsive-data-table__actions px-6 py-4 text-right">
                   <OrderActionButtons orderId={order.id} />
                 </td>
               </tr>

@@ -150,7 +150,7 @@ export default function TeacherCoursesClient({
         </div>
       ) : (
         <div className="bg-white/80 backdrop-blur rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="responsive-data-table">
             <table className="w-full text-sm text-left">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
@@ -165,7 +165,7 @@ export default function TeacherCoursesClient({
               <tbody className="divide-y divide-slate-100">
                 {courses.map((course) => (
                   <tr key={course.id} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-4">
+                    <td data-label="Course" className="px-6 py-4">
                       <div className="flex items-center gap-3 min-w-0">
                         {course.thumbnail ? (
                           <img
@@ -184,15 +184,15 @@ export default function TeacherCoursesClient({
                         )}
                         <div className="min-w-0">
                           <p className="font-semibold text-slate-900">{course.title}</p>
-                          <p className="text-xs text-slate-500 truncate">{course.slug}</p>
+                          <p className="text-xs text-slate-500">{course.slug}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-700">{course.category.name}</td>
-                    <td className="px-6 py-4">
+                    <td data-label="Category" className="px-6 py-4 text-slate-700">{course.category.name}</td>
+                    <td data-label="Price" className="px-6 py-4">
                       <span className="font-semibold text-slate-900">${course.price.toFixed(2)}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td data-label="Published" className="px-6 py-4">
                       <span
                         className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold ${
                           course.published ? "bg-teal-100 text-teal-700" : "bg-slate-100 text-slate-600"
@@ -201,10 +201,10 @@ export default function TeacherCoursesClient({
                         {course.published ? "Published" : "Draft"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">
+                    <td data-label="Modules / Students" className="px-6 py-4 text-slate-600">
                       {course._count.modules} modules · {course._count.enrollments} students
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td data-label="Actions" className="responsive-data-table__actions px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"

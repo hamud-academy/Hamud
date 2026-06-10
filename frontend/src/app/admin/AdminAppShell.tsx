@@ -8,7 +8,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import LanguageSelector from "@/components/LanguageSelector";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { useTranslation } from "@/components/LanguageProvider";
-import { ADMIN_MOBILE_NAV } from "@/lib/mobile-nav-config";
+import { ADMIN_MOBILE_NAV, isAdminMorePanelActive } from "@/lib/mobile-nav-config";
+import { usePathname } from "next/navigation";
 
 type Props = {
   children: ReactNode;
@@ -22,6 +23,7 @@ type Props = {
 export default function AdminAppShell({ children, siteName, logoUrl, userName, userImage, role }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t } = useTranslation();
+  const pathname = usePathname();
 
   useEffect(() => {
     const onResize = () => {
@@ -48,7 +50,17 @@ export default function AdminAppShell({ children, siteName, logoUrl, userName, u
 
   return (
     <div className="dashboard-theme-scope min-h-screen flex bg-white dark:bg-slate-950">
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200 dark:border-slate-800 bg-[#F8F8F8]/95 dark:bg-slate-900/95 backdrop-blur-xl px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200 dark:border-slate-800 bg-[#F8F8F8]/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 sm:px-4 safe-area-top">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-200/80 dark:text-slate-300 dark:hover:bg-slate-800"
+          aria-label={t("common.openMenu")}
+        >
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <Link href="/admin" className="flex items-center gap-2 min-w-0 flex-1" onClick={closeNav}>
           <span className="relative w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
             {logoUrl ? (
@@ -73,11 +85,11 @@ export default function AdminAppShell({ children, siteName, logoUrl, userName, u
       )}
 
       <aside
-        className={`fixed inset-y-0 start-0 z-50 flex w-[260px] flex-col bg-[#F8F8F8] dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-transform duration-200 ease-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 start-0 z-50 flex h-[100dvh] w-[min(85vw,16rem)] sm:w-[260px] flex-col bg-[#F8F8F8] dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl lg:shadow-none transition-transform duration-200 ease-out lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="relative z-[60] flex-shrink-0 overflow-visible p-5 border-b border-slate-200/80 dark:border-slate-800">
+        <div className="relative z-[60] flex-shrink-0 overflow-visible p-4 sm:p-5 border-b border-slate-200/80 dark:border-slate-800">
           <div className="flex items-start gap-2">
             <Link href="/admin" className="flex min-w-0 flex-1 items-center gap-3" onClick={closeNav}>
               <span className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-blue-600 flex items-center justify-center text-lg font-bold text-white">
@@ -92,7 +104,17 @@ export default function AdminAppShell({ children, siteName, logoUrl, userName, u
                 <span className="text-xs text-slate-500 dark:text-slate-400">{t("role.adminSystem")}</span>
               </div>
             </Link>
-            <LanguageSelector compact className="shrink-0" />
+            <LanguageSelector compact className="shrink-0 hidden sm:block" />
+            <button
+              type="button"
+              onClick={closeNav}
+              className="lg:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-200/80 dark:text-slate-400 dark:hover:bg-slate-800"
+              aria-label={t("common.closeMenu")}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
@@ -125,7 +147,7 @@ export default function AdminAppShell({ children, siteName, logoUrl, userName, u
         </div>
       </aside>
 
-      <main className="flex-1 min-h-screen min-w-0 w-full lg:ml-[260px] pt-14 lg:pt-0 pb-24 lg:pb-0 dark:bg-slate-950">
+      <main className="flex-1 min-h-screen min-w-0 w-full lg:ml-[260px] pt-14 lg:pt-0 pb-24 lg:pb-0 dark:bg-slate-950 overflow-x-clip">
         {children}
       </main>
 
@@ -133,7 +155,8 @@ export default function AdminAppShell({ children, siteName, logoUrl, userName, u
         homeHref={ADMIN_MOBILE_NAV.homeHref}
         primary={ADMIN_MOBILE_NAV.primary}
         accent={ADMIN_MOBILE_NAV.accent}
-        more={ADMIN_MOBILE_NAV.more}
+        moreActive={isAdminMorePanelActive(pathname)}
+        moreContent={(close) => <AdminNav role={role} onNavigate={close} />}
         signOutHref="/api/auth/signout"
       />
     </div>

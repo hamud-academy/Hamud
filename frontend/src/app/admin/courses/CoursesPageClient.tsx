@@ -111,7 +111,7 @@ export default function CoursesPageClient({
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/80 shadow-sm backdrop-blur">
-          <div className="overflow-x-auto">
+          <div className="responsive-data-table">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
@@ -127,12 +127,12 @@ export default function CoursesPageClient({
               <tbody className="divide-y divide-slate-100">
                 {courses.map((course) => (
                   <tr key={course.id} className="transition hover:bg-slate-50/50">
-                    <td className="px-6 py-4">
+                    <td data-label="Course" className="px-6 py-4">
                       <p className="font-semibold text-slate-900">{course.title}</p>
                       <p className="text-xs text-slate-500">{course.slug}</p>
                     </td>
-                    <td className="px-6 py-4 text-slate-700">{course.category.name}</td>
-                    <td className="px-6 py-4">
+                    <td data-label="Category" className="px-6 py-4 text-slate-700">{course.category.name}</td>
+                    <td data-label="Assigned teacher" className="px-6 py-4">
                       <select
                         value={course.instructorId}
                         disabled={assigningId === course.id}
@@ -147,10 +147,10 @@ export default function CoursesPageClient({
                         ))}
                       </select>
                     </td>
-                    <td className="px-6 py-4">
+                    <td data-label="Price" className="px-6 py-4">
                       <span className="font-semibold text-slate-900">${course.price.toFixed(2)}</span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td data-label="Status" className="px-6 py-4">
                       <span
                         className={`inline-flex rounded-lg px-2.5 py-1 text-xs font-semibold ${
                           course.published ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
@@ -159,10 +159,10 @@ export default function CoursesPageClient({
                         {course.published ? "Published" : "Draft"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">
+                    <td data-label="Modules / Students" className="px-6 py-4 text-slate-600">
                       {course._count.modules} modules · {course._count.enrollments} students
                     </td>
-                    <td className="px-6 py-4">
+                    <td data-label="Actions" className="responsive-data-table__actions px-6 py-4">
                       <div className="flex flex-wrap gap-2">
                         <Link
                           href={`/admin/courses/${course.id}/edit`}

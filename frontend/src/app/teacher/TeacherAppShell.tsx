@@ -8,7 +8,8 @@ import ThemeToggle from "@/components/ThemeToggle";
 import LanguageSelector from "@/components/LanguageSelector";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { useTranslation } from "@/components/LanguageProvider";
-import { TEACHER_MOBILE_NAV } from "@/lib/mobile-nav-config";
+import { TEACHER_MOBILE_NAV, isTeacherMorePanelActive } from "@/lib/mobile-nav-config";
+import { usePathname } from "next/navigation";
 
 type Props = {
   children: ReactNode;
@@ -21,6 +22,7 @@ type Props = {
 export default function TeacherAppShell({ children, siteName, logoUrl, userName, userImage }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { t } = useTranslation();
+  const pathname = usePathname();
 
   useEffect(() => {
     const onResize = () => {
@@ -47,7 +49,17 @@ export default function TeacherAppShell({ children, siteName, logoUrl, userName,
 
   return (
     <div className="dashboard-theme-scope min-h-screen flex bg-slate-50 dark:bg-slate-950">
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-4 shadow-sm">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-30 flex h-14 items-center gap-2 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl px-3 sm:px-4 shadow-sm safe-area-top">
+        <button
+          type="button"
+          onClick={() => setMobileOpen(true)}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+          aria-label={t("common.openMenu")}
+        >
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
         <Link href="/teacher" className="flex items-center gap-2 min-w-0 flex-1" onClick={closeNav}>
           <span className="relative w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 overflow-hidden">
             {logoUrl ? (
@@ -72,7 +84,7 @@ export default function TeacherAppShell({ children, siteName, logoUrl, userName,
       )}
 
       <aside
-        className={`fixed inset-y-0 start-0 z-50 flex w-64 flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-sm transition-transform duration-200 ease-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 start-0 z-50 flex h-[100dvh] w-[min(85vw,16rem)] sm:w-64 flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-xl lg:shadow-none transition-transform duration-200 ease-out lg:translate-x-0 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
@@ -91,7 +103,17 @@ export default function TeacherAppShell({ children, siteName, logoUrl, userName,
                 <span className="text-xs text-slate-500 dark:text-slate-400">{t("role.teacher")}</span>
               </div>
             </Link>
-            <LanguageSelector compact className="shrink-0" />
+            <LanguageSelector compact className="shrink-0 hidden sm:block" />
+            <button
+              type="button"
+              onClick={closeNav}
+              className="lg:hidden flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+              aria-label={t("common.closeMenu")}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </div>
         <TeacherNav onNavigate={closeNav} />
@@ -118,7 +140,7 @@ export default function TeacherAppShell({ children, siteName, logoUrl, userName,
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 min-h-screen w-full lg:ml-64 pt-14 lg:pt-0 px-4 sm:px-6 md:pl-8 md:pr-8 pb-24 lg:pb-8 dark:bg-slate-950">
+      <main className="flex-1 min-w-0 min-h-screen w-full lg:ml-64 pt-14 lg:pt-0 px-3 sm:px-6 md:pl-8 md:pr-8 pb-24 lg:pb-8 dark:bg-slate-950 overflow-x-clip">
         {children}
       </main>
 
@@ -126,7 +148,9 @@ export default function TeacherAppShell({ children, siteName, logoUrl, userName,
         homeHref={TEACHER_MOBILE_NAV.homeHref}
         primary={TEACHER_MOBILE_NAV.primary}
         accent={TEACHER_MOBILE_NAV.accent}
-        more={TEACHER_MOBILE_NAV.more}
+        moreActive={isTeacherMorePanelActive(pathname)}
+        moreContent={(close) => <TeacherNav onNavigate={close} />}
+        morePanelTheme="app"
         signOutHref="/api/auth/signout"
       />
     </div>

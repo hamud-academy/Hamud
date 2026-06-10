@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageSelector from "@/components/LanguageSelector";
 import { useTranslation } from "@/components/LanguageProvider";
@@ -91,6 +91,14 @@ type Props = {
   trailing?: MobileNavLink[];
   accent?: MobileNavAccentLink[];
   more?: MobileNavLink[];
+  /** Full sidebar-style panel (e.g. AdminNav) instead of flat link list */
+  moreContent?: (close: () => void) => ReactNode;
+  /** Override active state for the more button */
+  moreActive?: boolean;
+  /** Panel background: admin sidebar grey vs app white sidebar */
+  morePanelTheme?: "admin" | "app";
+  /** Top offset class for sidebar panel (admin/teacher mobile header) */
+  morePanelTopClass?: string;
   showTabLabels?: boolean;
   showThemeToggle?: boolean;
   signOutHref?: string;
@@ -105,6 +113,10 @@ export default function MobileBottomNav({
   trailing = [],
   accent = [],
   more = [],
+  moreContent,
+  moreActive: moreActiveProp,
+  morePanelTheme = "admin",
+  morePanelTopClass = "top-14",
   showTabLabels = false,
   showThemeToggle = true,
   signOutHref,
@@ -114,8 +126,20 @@ export default function MobileBottomNav({
   const pathname = usePathname();
   const { t } = useTranslation();
   const [moreOpen, setMoreOpen] = useState(false);
-  const moreActive = isMoreMenuActive(pathname, more);
+  const moreActive = moreActiveProp ?? isMoreMenuActive(pathname, more);
   const homeActive = isHomeNavActive(pathname, homeHref);
+  const showMore = more.length > 0 || !!moreContent;
+  const sidebarMorePanel = !!moreContent;
+  const panelSurface =
+    morePanelTheme === "admin"
+      ? "border-slate-200/80 bg-[#F8F8F8] dark:border-slate-800 dark:bg-slate-900"
+      : "border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900";
+  const panelFooterSurface =
+    morePanelTheme === "admin"
+      ? "border-slate-200/80 bg-[#F8F8F8] dark:border-slate-800 dark:bg-slate-900"
+      : "border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900";
+  const panelInsetSurface =
+    morePanelTheme === "admin" ? "bg-white/80 dark:bg-slate-800/60" : "bg-slate-50 dark:bg-slate-800/60";
 
   useEffect(() => {
     if (padMainContent) {
@@ -152,7 +176,53 @@ export default function MobileBottomNav({
         />
       )}
 
-      {moreOpen && more.length > 0 && (
+      {moreOpen && showMore && sidebarMorePanel && (
+        <div
+          className={`lg:hidden fixed inset-x-0 ${morePanelTopClass} bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] z-[56] flex flex-col overflow-hidden border-t shadow-2xl ${panelSurface}`}
+          role="dialog"
+          aria-label={t("nav.more")}
+        >
+          <div className={`flex shrink-0 items-center justify-between border-b px-4 py-3 ${panelSurface}`}>
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{t("nav.more")}</p>
+            <button
+              type="button"
+              onClick={closeMore}
+              className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-200/80 dark:text-slate-400 dark:hover:bg-slate-800"
+              aria-label={t("common.closeMenu")}
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            {moreContent?.(closeMore)}
+          </div>
+          <div className={`shrink-0 border-t p-3 ${panelFooterSurface}`}>
+            <div className={`mb-2 flex items-center justify-between rounded-lg px-3 py-2.5 ${panelInsetSurface}`}>
+              <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("common.language")}</span>
+              <LanguageSelector compact />
+            </div>
+            {showThemeToggle && (
+              <div className={`mb-2 flex items-center justify-between rounded-lg px-3 py-2.5 ${panelInsetSurface}`}>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{t("common.theme")}</span>
+                <ThemeToggle className="!h-9 !w-9" />
+              </div>
+            )}
+            {signOutHref && (
+              <Link
+                href={signOutHref}
+                onClick={closeMore}
+                className="flex w-full items-center justify-center rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+              >
+                {t("auth.logout")}
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      {moreOpen && showMore && !sidebarMorePanel && (
         <div
           className="lg:hidden fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] z-[56] max-h-[min(70vh,28rem)] overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl shadow-slate-900/20 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/40"
           role="dialog"
@@ -254,7 +324,7 @@ export default function MobileBottomNav({
 
           {accent.map((item) => renderTabLink(item, pathname, showTabLabels, t(item.labelKey), "accent"))}
 
-          {more.length > 0 && (
+          {showMore && (
             <button
               type="button"
               onClick={() => setMoreOpen((open) => !open)}

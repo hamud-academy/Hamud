@@ -5,6 +5,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { isStrongPassword, strongPasswordMessage } from "@/lib/password-strength";
+import {
+  clearSessionLoginPassword,
+  readSessionLoginPassword,
+  saveSessionLoginPassword,
+} from "@/lib/session-login-password";
 
 const MAX_AVATAR_MB = 50;
 
@@ -167,6 +172,22 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
   const displayName = user.name || user.email || "Admin";
   const avatarUrl = user.image || null;
 
+  function openPasswordModal() {
+    setPasswordMessage(null);
+    setNewPassword("");
+    setConfirmPassword("");
+    setCurrentPassword(readSessionLoginPassword(user.email) ?? "");
+    setPasswordOpen(true);
+  }
+
+  function closePasswordModal() {
+    setPasswordOpen(false);
+    setPasswordMessage(null);
+    setNewPassword("");
+    setConfirmPassword("");
+    setCurrentPassword("");
+  }
+
   async function handlePhotoSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!photoFile) {
@@ -254,6 +275,7 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
       setEmailMessage({ type: "ok", text: "Email updated. Sign in again with your new email." });
       setEmailOpen(false);
       router.refresh();
+      clearSessionLoginPassword();
       await signOut({ callbackUrl: "/login" });
     } catch {
       setEmailMessage({ type: "err", text: "Connection error" });
@@ -289,10 +311,8 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
         return;
       }
       setPasswordMessage({ type: "ok", text: "Password updated." });
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setPasswordOpen(false);
+      saveSessionLoginPassword(user.email, newPassword);
+      closePasswordModal();
     } catch {
       setPasswordMessage({ type: "err", text: "Connection error" });
     } finally {
@@ -304,17 +324,6 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
     <div className="p-4 sm:p-6 md:p-8 max-w-3xl">
       <h1 className="text-2xl font-bold text-slate-900 mb-2">Profile Settings</h1>
       <p className="text-slate-600 mb-6">Manage your admin account details.</p>
-
-      <div className="mb-8 rounded-2xl border border-emerald-200 bg-emerald-50/80 px-5 py-4 text-sm text-emerald-900">
-        <p className="font-medium">Login credentials</p>
-        <p className="mt-1 text-emerald-800/90">
-          After you change email or password here, sign in with your{" "}
-          <strong className="font-semibold">new email and new password</strong>. They stay active after
-          deploy/restart.{" "}
-          <strong className="font-semibold">ADMIN_EMAIL + ADMIN_PASSWORD</strong> in .env or Vercel remain a
-          separate recovery login (always use the env email address for that).
-        </p>
-      </div>
 
       <div className="space-y-4">
         {/* Photo */}
@@ -395,7 +404,7 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
             </div>
             <button
               type="button"
-              onClick={() => setPasswordOpen(true)}
+              onClick={openPasswordModal}
               className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 transition"
             >
               Change password
@@ -526,7 +535,7 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
       </Modal>
 
       {/* Password modal */}
-      <Modal open={passwordOpen} onClose={() => { setPasswordOpen(false); setPasswordMessage(null); setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); }} title="Change password">
+      <Modal open={passwordOpen} onClose={closePasswordModal} title="Change password">
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           {passwordMessage && (
             <div
@@ -563,7 +572,7 @@ export default function ProfileSettingsClient({ user }: ProfileSettingsClientPro
           <div className="flex gap-3 pt-2">
             <button
               type="button"
-              onClick={() => setPasswordOpen(false)}
+              onClick={closePasswordModal}
               className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition"
             >
               Cancel

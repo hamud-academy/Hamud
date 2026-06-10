@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { Suspense } from "react";
-import LoginForm from "@/components/LoginForm";
+import ForgotPasswordForm from "@/components/ForgotPasswordForm";
 import { useTranslation } from "@/components/LanguageProvider";
 
-export default function LoginPageContent() {
+export default function ForgotPasswordPageContent() {
   const { t } = useTranslation();
 
   return (
@@ -19,13 +19,13 @@ export default function LoginPageContent() {
           <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white/90 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/90 dark:shadow-black/30">
             <div className="border-b border-slate-100 px-6 py-6 text-center dark:border-slate-800 sm:px-8">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
-                {t("auth.welcomeBack")}
+                {t("auth.forgotPassword")}
               </p>
               <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">
-                {t("auth.signInTitle")}
+                {t("auth.forgotPasswordTitle")}
               </h1>
               <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
-                {t("auth.signInSubtitle")}
+                {t("auth.forgotPasswordSubtitle")}
               </p>
             </div>
 
@@ -33,25 +33,15 @@ export default function LoginPageContent() {
               <Suspense
                 fallback={<div className="h-56 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800" />}
               >
-                <LoginForm />
+                <ForgotPasswordForm />
               </Suspense>
 
               <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
-                {t("auth.noAccountPrompt")}{" "}
                 <Link
-                  href="/signup"
+                  href="/login"
                   className="font-semibold text-blue-600 transition hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                 >
-                  {t("auth.signup")}
-                </Link>
-              </p>
-
-              <p className="mt-3 text-center text-sm">
-                <Link
-                  href="/forgot-password"
-                  className="font-semibold text-slate-600 transition hover:text-blue-600 dark:text-slate-400 dark:hover:text-blue-400"
-                >
-                  {t("auth.forgotPassword")}
+                  {t("auth.forgotBackToSignIn")}
                 </Link>
               </p>
             </div>
